@@ -150,7 +150,7 @@ Panel {
           // ---------- Hero: parlayan mod halkası · ad · sıcaklık ----------
           Item {
             width: parent.width
-            height: 52
+            height: 56
             RectangularShadow {
               anchors.fill: heroRing; radius: 26; blur: 14; color: root.cyan; opacity: 0.8
             }
@@ -177,11 +177,23 @@ Panel {
                 text: root.lbl("bar.mode").replace("{mode}", root.modeLabel)
                 color: root.text; font.family: root.uiFont; font.pixelSize: 18; font.weight: Font.DemiBold
               }
+              // Güç sınırları: işlemci (PL1) ve ekran kartı (şu anki sınır).
               Text {
                 width: parent.width; elide: Text.ElideRight
-                text: root.lbl("bar.power.limit") + " " + Model.num(root.info ? root.info.pl1 : null) + " W"
-                  + (root.info && root.info.power && root.info.power !== "off" ? "  ·  " + root.lbl("power." + root.info.power).toUpperCase() : "")
-                color: root.dim; font.family: root.uiFont; font.pixelSize: 11; font.letterSpacing: 1.4
+                text: root.lbl("cpu.short").toUpperCase() + " " + Model.num(root.info ? root.info.pl1 : null) + " W"
+                  + (root.info && root.info.gpuPowerLimit ? "  ·  " + root.lbl("gpu.short").toUpperCase() + " " + Model.num(root.info.gpuPowerLimit) + " W" : "")
+                color: root.dim; font.family: root.uiFont; font.pixelSize: 11; font.letterSpacing: 1.2
+              }
+              Text {
+                readonly property bool boost: !!root.info && root.mode === "performance"
+                  && root.info.gpuPowerMax > (root.info.gpuPowerLimit || 0)
+                readonly property bool saving: !!root.info && !!root.info.power && root.info.power !== "off"
+                visible: boost || saving
+                width: parent.width; elide: Text.ElideRight
+                text: !root.info ? "" : saving ? root.lbl("power." + root.info.power).toUpperCase()
+                             : root.lbl("gpu.short").toUpperCase() + " " + root.lbl("bar.boost").replace("{w}", Model.num(root.info.gpuPowerMax)).toUpperCase()
+                color: saving ? root.purple : root.cyan
+                font.family: root.uiFont; font.pixelSize: 11; font.letterSpacing: 1.2
               }
             }
             Column {
@@ -328,7 +340,7 @@ Panel {
               width: tiles.cell
               readonly property bool sleeping: !root.info || root.info.gpuSleeping
               value: sleeping ? root.lbl("gpu.sleeping") : Model.num(root.info.gpuPower, 0)
-              unit: sleeping ? "" : "W"
+              unit: sleeping ? "" : (root.info.gpuPowerLimit ? "/ " + Model.num(root.info.gpuPowerLimit) + " W" : "W")
               label: root.lbl("gpu.short")
             }
             StatTile {

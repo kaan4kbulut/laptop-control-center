@@ -168,6 +168,8 @@ _STRINGS: dict[str, tuple[str, str]] = {
     "bar.charging": ("şarj oluyor", "charging"),
     "bar.left": ("kalan", "left"),
     "bar.full": ("dolu", "full"),
+    "bar.boost": ("boost ile {w} W", "{w} W with boost"),
+    "gpu.boost": ("Dynamic Boost ile {w} W'a kadar", "up to {w} W with Dynamic Boost"),
     "cpu.short": ("İşlemci", "CPU"),
     "battery.short": ("Pil", "Battery"),
 }

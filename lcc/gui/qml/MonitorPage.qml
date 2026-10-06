@@ -90,6 +90,18 @@ Item {
         }
         Text {
             anchors.baseline: limLabel.baseline
+            visible: !!page.lv.gpuPowerLimit
+            text: "· " + page.tr["gpu.short"]
+            font.family: Theme.font; font.pixelSize: 13; color: Theme.muted
+        }
+        Text {
+            anchors.baseline: limLabel.baseline
+            visible: !!page.lv.gpuPowerLimit
+            text: page.n(page.lv.gpuPowerLimit) + " W"
+            font.family: Theme.digits; font.pixelSize: 16; font.weight: Font.DemiBold; color: Theme.text
+        }
+        Text {
+            anchors.baseline: limLabel.baseline
             text: "· " + (page.tr["mode.note." + page.lv.mode] || "")
             font.family: Theme.font; font.pixelSize: 13; color: Theme.muted
         }
@@ -283,7 +295,9 @@ Item {
         Text {
             width: parent.width; horizontalAlignment: Text.AlignHCenter
             visible: !!page.lv.gpuPowerLimit
-            text: page.tr["gpu.limit.upto"].replace("{w}", page.n(page.lv.gpuPowerLimit))
+            text: page.lv.mode === "performance" && page.lv.gpuPowerMax > page.lv.gpuPowerLimit
+                  ? page.tr["gpu.boost"].replace("{w}", page.n(page.lv.gpuPowerMax))
+                  : page.tr["gpu.limit.upto"].replace("{w}", page.n(page.lv.gpuPowerLimit))
             font.family: Theme.font; font.pixelSize: 12; color: Theme.dim
         }
     }

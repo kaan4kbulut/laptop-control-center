@@ -103,6 +103,7 @@ class Worker(QObject):
             "gpuSleeping": bool(g and g.sleeping), "gpuUsage": g.usage if g else None,
             "gpuTemp": g.temp if g else None, "gpuPower": g.power if g else None,
             "gpuPowerLimit": g.power_limit if g else None,
+            "gpuPowerMax": g.power_max if g else None,
             "mem": s.mem_used, "memTotal": s.mem_total_gb,
             "disk": s.disk_used, "diskTotal": s.disk_total_gb,
             "onBattery": s.on_battery, "battery": s.battery, "batteryPower": s.battery_power,

@@ -200,7 +200,7 @@ BAR_LABELS = (
     "app.title", "bar.mode", "bar.modes", "bar.power.limit", "bar.fan", "bar.kbd", "bar.open",
     "bar.shortcut", "bar.live", "bar.history", "bar.temp", "bar.usage", "bar.freq", "bar.avg",
     "bar.power", "bar.clock", "bar.mem", "bar.disk", "bar.battery", "bar.charging", "bar.left",
-    "bar.full", "cpu.short", "fan.cpu", "fan.gpu", "gpu.short", "gpu.sleeping",
+    "bar.full", "bar.boost", "cpu.short", "fan.cpu", "fan.gpu", "gpu.short", "gpu.sleeping",
     "power.title", "power.off", "power.saver", "power.ultra", "power.onbat", "power.onac")
 
 
@@ -223,6 +223,7 @@ def _bar_payload(ctl, sensors) -> dict:
         "gpuTemp": g.temp if g else None, "gpuUsage": g.usage if g else None,
         "gpuPower": g.power if g else None, "gpuPowerLimit": g.power_limit if g else None,
         "gpuClock": g.clock if g else None,
+        "gpuPowerMax": g.power_max if g else None,
         "mem": s.mem_used, "memTotal": s.mem_total_gb,
         "disk": s.disk_used, "diskTotal": s.disk_total_gb,
         "onBattery": s.on_battery, "battery": s.battery, "batteryPower": s.battery_power,

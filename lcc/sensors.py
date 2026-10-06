@@ -24,8 +24,9 @@ class GpuSample:
     usage: float | None = None      # %
     temp: float | None = None       # °C
     power: float | None = None      # W
-    power_limit: float | None = None
+    power_limit: float | None = None    # şu an uygulanan sınır (W)
     clock: float | None = None      # MHz
+    power_max: float | None = None      # kartın izin verdiği en yüksek sınır (Dynamic Boost tavanı)
 
 
 @dataclass
@@ -120,7 +121,7 @@ class Sensors:
         if sleeping:
             return s
         if g.vendor == "nvidia" and self._has_nvsmi:
-            q = "utilization.gpu,temperature.gpu,power.draw,enforced.power.limit,clocks.gr"
+            q = "utilization.gpu,temperature.gpu,power.draw,enforced.power.limit,clocks.gr,power.max_limit"
             try:
                 out = subprocess.run(
                     ["nvidia-smi", f"--id={g.pci}", f"--query-gpu={q}",
@@ -133,8 +134,8 @@ class Sensors:
                         return float(v)
                     except ValueError:
                         return None
-                if len(vals) == 5:
-                    s.usage, s.temp, s.power, s.power_limit, s.clock = map(num, vals)
+                if len(vals) == 6:
+                    s.usage, s.temp, s.power, s.power_limit, s.clock, s.power_max = map(num, vals)
             except (OSError, subprocess.SubprocessError):
                 pass
         elif g.vendor == "amd":
