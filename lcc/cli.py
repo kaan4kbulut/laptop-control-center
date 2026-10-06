@@ -348,7 +348,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_monitor)
 
     s = sub.add_parser("gui", help="ana pencere / main window")
-    s.add_argument("page", nargs="?", default="monitor", choices=["monitor", "led", "settings", "power"])
+    s.add_argument("page", nargs="?", default="monitor", choices=["monitor", "led", "settings", "power", "fancurve"])
     s.set_defaults(func=cmd_gui)
 
     s = sub.add_parser("bar", help="bar eklentisi için JSON / JSON for the bar plugin")

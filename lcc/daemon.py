@@ -14,7 +14,7 @@ import signal
 
 from gi.repository import Gio, GLib
 
-from . import config, dbus, notify, power
+from . import camera, config, dbus, notify, power
 from . import hardware as hw
 from .backends.base import SetupRequired, Unsupported
 from .controller import Controller
@@ -128,9 +128,16 @@ class Daemon:
         self._watch(config.path())
         self._watch_hyprland()
         self._power(lambda: self.power.evaluate(hw.on_battery()))
+        self._apply_camera()
         self._check()
         self.schedule_checks()
         self.loop.run()
+
+    def _apply_camera(self) -> None:
+        """Kullanıcı kamerayı kapattıysa yeniden başlatmadan sonra da kapalı kalsın."""
+        if config.load().get("camera", True) is False and camera.enabled() and camera.available():
+            log.info("camera disabled by preference")
+            camera.set_enabled(False)
 
     def _quit(self) -> bool:
         self.loop.quit()

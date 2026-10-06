@@ -72,7 +72,7 @@ class GenericBackend(Backend):
         except GLib.Error:
             return None, None
 
-    def apply(self, mode: str, fan: str) -> None:
+    def apply(self, mode: str, fan: str, force: bool = False) -> None:
         if not self._ppd or mode not in TO_PPD:
             raise Unsupported(mode)
         name, path = self._ppd

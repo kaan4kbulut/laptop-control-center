@@ -9,11 +9,10 @@ Item {
     readonly property var tr: win.tr
     readonly property var dk: win.desk
     // [anahtar, desk alanı, bridge komutu (yoksa yalnızca gösterge)]
-    readonly property var toggles: [
-        ["fnlock", "fnlock", "fnlock"], ["touchpad", "touchpad", "touchpad"],
-        ["airplane", "airplane", "airplane"], ["mic", "mic", "mic"],
-        ["numlock", "numlock", ""], ["capslock", "capslock", ""]
-    ]
+    readonly property var toggles: [["fnlock", "fnlock", "fnlock"]]
+        .concat(win.info.camera ? [["camera", "camera", "camera"]] : [])
+        .concat([["touchpad", "touchpad", "touchpad"], ["airplane", "airplane", "airplane"],
+                 ["mic", "mic", "mic"], ["numlock", "numlock", ""], ["capslock", "capslock", ""]])
     property string sel: "touchpad"
     readonly property var selDef: toggles.find(t => t[0] === sel)
     readonly property var selVal: dk[selDef[1]]

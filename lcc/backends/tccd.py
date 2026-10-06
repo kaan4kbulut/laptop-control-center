@@ -146,14 +146,18 @@ class TccdBackend(Backend):
         active = _json("GetActiveProfileJSON")
         return parse_profile_id(active.get("id", ""))
 
-    def apply(self, mode: str, fan: str) -> None:
+    def apply(self, mode: str, fan: str, force: bool = False) -> None:
         pid = profile_id(mode, fan)
         if pid not in self._installed_ids():
             raise SetupRequired(t("setup.needed"))
-        if self.current() == (mode, fan):
+        if self.current() == (mode, fan) and not force:
             return
         if not _call("SetTempProfileById", "s", pid):
             raise RuntimeError(f"tccd rejected profile {pid}")
+
+    def auto_curves(self) -> dict[str, list[list[int]]]:
+        """Arayüzde karşılaştırma için modların Otomatik fan eğrileri."""
+        return {m: AUTO_CURVE[m] for m in self.capabilities().modes if m in AUTO_CURVE}
 
     def build_profiles(self, custom_curve: list[list[int]]) -> list[dict]:
         base = _json("GetDefaultValuesProfileJSON")
@@ -212,8 +216,13 @@ class TccdBackend(Backend):
                 json.dump(settings, f)
             os.chmod(pf, 0o644)
             os.chmod(sf, 0o644)
-            r = subprocess.run(["pkexec", TCCD_EXEC, "--new_profiles", pf,
-                                "--new_settings", sf], capture_output=True, text=True)
+            from .. import helper
+            if helper.installed() and helper.version() >= 2:
+                # Yardımcı kuruluysa parola sorulmaz (fan eğrisi kaydı gibi sık işler için).
+                cmd = ["pkexec", helper.PATH, "tcc-profiles", pf, sf]
+            else:
+                cmd = ["pkexec", TCCD_EXEC, "--new_profiles", pf, "--new_settings", sf]
+            r = subprocess.run(cmd, capture_output=True, text=True)
         if r.returncode != 0:
             raise RuntimeError((r.stderr or r.stdout).strip() or f"pkexec exit {r.returncode}")
 

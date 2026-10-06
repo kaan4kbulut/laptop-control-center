@@ -14,7 +14,7 @@ import traceback
 
 from PySide6.QtCore import Property, QObject, QThread, QTimer, Signal, Slot
 
-from .. import config, desktop, notify, power
+from .. import camera, config, desktop, notify, power
 from .. import hardware as hw
 from ..backends.base import KeyboardState, Unsupported
 from ..i18n import LANG, strings
@@ -77,6 +77,9 @@ class Worker(QObject):
             "chargeEnd": list(caps.charge_end),
             "fnLock": caps.fn_lock,
             "needsSetup": b.needs_setup(),
+            "camera": camera.available(),
+            "fanCurves": dict(b.auto_curves(), custom=config.load()["custom_fan_curve"])
+                         if hasattr(b, "auto_curves") and "custom" in caps.fan_modes else None,
             "lang": LANG,
         }
 
@@ -116,6 +119,7 @@ class Worker(QObject):
             "volume": desktop.volume(), "brightness": desktop.brightness(),
             "night": desktop.night_light(), "airplane": desktop.airplane(),
             "numlock": desktop.num_lock(), "capslock": desktop.caps_lock(),
+            "camera": camera.enabled(),
             "fnlock": None, "chargeEnd": None, "chargeStart": None,
             "kbdBrightness": None, "kbdColorValue": None,
         }
@@ -201,6 +205,21 @@ class Worker(QObject):
         caps = dict(power.settings().get("brightness_cap", {}))
         caps[level] = max(5, min(100, int(value)))
         config.update(power_saving={"brightness_cap": caps})
+
+    def do_camera(self, on):
+        if not camera.set_enabled(bool(on)):
+            raise RuntimeError("camera")
+        config.update(camera=bool(on))
+
+    def do_fanCurve(self, points):
+        """Özel fan eğrisini kaydeder, tccd profillerini yeniden yazar ve fanı Özel'e alır."""
+        pts = [[int(t), max(0, min(100, int(round(v))))] for t, v in points]
+        config.update(custom_fan_curve=pts)
+        self.ctl.backend.setup(pts)
+        mode, _ = self.ctl.desired()
+        self.ctl.set_fan("custom")
+        self.ctl.backend.apply(mode, "custom", force=True)
+        self.infoReady.emit(self._info())
 
     def do_airplane(self, on):
         desktop.set_airplane(bool(on))

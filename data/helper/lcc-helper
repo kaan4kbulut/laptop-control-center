@@ -6,11 +6,14 @@
 #   service <stop|start> <birim>     (yalnızca ALLOWED listesindekiler)
 #   cpus <liste|all>                 (çağıran kullanıcının oturum dilimi)
 #   rfkill bluetooth <block|unblock>
+#   camera <on|off>                  (USB görüntü sınıfı arayüzleri uvcvideo'ya bağlanır/ayrılır)
+#   tcc-profiles <profiles.json> <settings.json>   (tccd profillerini yeniden yazar)
 #   version
 set -euo pipefail
 export PATH=/usr/sbin:/usr/bin
 
-VERSION=1
+VERSION=2
+TCCD=/opt/tuxedo-control-center/resources/dist/tuxedo-control-center/data/service/tccd
 ALLOWED=(nvidia-powerd avahi-daemon cups ollama)
 
 die() { echo "lcc-helper: $*" >&2; exit 2; }
@@ -54,6 +57,35 @@ case "${1:-}" in
   rfkill)
     [[ ${2:-} == bluetooth && ${3:-} =~ ^(block|unblock)$ ]] || die "rfkill bluetooth block|unblock bekleniyor"
     rfkill "$3" bluetooth ;;
+  camera)
+    [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
+    [[ $2 == on ]] && modprobe uvcvideo
+    for intf in /sys/bus/usb/devices/*:*; do
+      [[ $(cat "$intf/bInterfaceClass" 2>/dev/null) == 0e ]] || continue
+      name=$(basename "$intf")
+      drv=""
+      [[ -e $intf/driver ]] && drv=$(basename "$(readlink -f "$intf/driver")")
+      if [[ $2 == off && $drv == uvcvideo ]]; then
+        echo "$name" > /sys/bus/usb/drivers/uvcvideo/unbind
+      elif [[ $2 == on && -z $drv ]]; then
+        # Kontrol arayüzü bağlanınca akış arayüzünü sürücü kendisi alır; o zaman bu hata verir.
+        echo "$name" > /sys/bus/usb/drivers/uvcvideo/bind 2>/dev/null || true
+      fi
+    done ;;
+  tcc-profiles)
+    [[ -x $TCCD ]] || die "tccd bulunamadı"
+    src_p=${2:-}; src_s=${3:-}
+    for f in "$src_p" "$src_s"; do
+      [[ -f $f && ! -L $f ]] || die "dosya yok: $f"
+    done
+    # Çağıranın değiştiremeyeceği kopyalar üzerinden çalış.
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    install -m644 "$src_p" "$tmp/profiles.json"
+    install -m644 "$src_s" "$tmp/settings.json"
+    python3 -c 'import json,sys; [json.load(open(f)) for f in sys.argv[1:]]' "$tmp/profiles.json" "$tmp/settings.json" \
+      || die "geçersiz JSON"
+    "$TCCD" --new_profiles "$tmp/profiles.json" --new_settings "$tmp/settings.json" ;;
   *)
     die "bilinmeyen komut: ${1:-}" ;;
 esac

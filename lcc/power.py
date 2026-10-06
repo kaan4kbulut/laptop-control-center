@@ -8,7 +8,7 @@ Her özellik açılmadan önceki durumu durum dosyasına kaydeder ve kapanınca 
 önceden kapalı olan Bluetooth açılmaz, önceden çalışmayan servis başlatılmaz, kullanıcı
 parlaklığı sonradan elle değiştirdiyse eski değere zorlanmaz.
 
-Root gereken adımlar /usr/local/libexec/lcc-helper ile yapılır (pkexec + polkit kuralı).
+Root gereken adımlar lcc-helper ile yapılır (lcc/helper.py).
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from . import config, desktop
+from . import config, desktop, helper
 
 log = logging.getLogger("lcc.power")
 
@@ -32,7 +32,6 @@ ROOT_FEATURES = {"wifi", "aspm", "services", "bluetooth", "ecores"}
 # Yeniden başlatınca kendiliğinden eski haline dönenler (durumları açılışta unutulur).
 BOOT_RESET = ROOT_FEATURES
 SERVICES = ("nvidia-powerd", "avahi-daemon", "cups", "ollama")
-HELPER = "/usr/local/libexec/lcc-helper"
 SAVER_REFRESH = 60
 
 
@@ -58,7 +57,7 @@ def _run(*cmd: str, timeout: float = 10) -> str | None:
 
 
 def _helper(*args: str) -> bool:
-    return _run("pkexec", HELPER, *args, timeout=30) is not None
+    return helper.run(*args)
 
 
 def _boot_id() -> str:
@@ -100,7 +99,7 @@ def status() -> dict:
 
 
 def helper_installed() -> bool:
-    return os.access(HELPER, os.X_OK)
+    return helper.installed()
 
 
 def ecores() -> str | None:

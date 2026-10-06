@@ -223,6 +223,20 @@ Item {
         }
     }
 
+    Text {
+        x: 1000; y: 505
+        visible: !!page.inf.fanCurves
+        text: page.tr["fan.curve.edit"]
+        font.family: Theme.font; font.pixelSize: 12
+        color: curveLink.containsMouse ? "white" : Theme.cyan
+        MouseArea {
+            id: curveLink
+            anchors.fill: parent; anchors.margins: -8
+            hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+            onClicked: win.page = "fancurve"
+        }
+    }
+
     // --- kullanım ve ekran kartı -----------------------------------------------
     Item {
         x: 230; y: 660; width: 300; height: 8

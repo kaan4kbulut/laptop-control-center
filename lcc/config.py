@@ -15,6 +15,7 @@ DEFAULTS: dict = {
     "custom_fan_curve": [[20, 0], [40, 15], [50, 25], [60, 35], [70, 50],
                          [80, 70], [90, 90], [100, 100]],
     "keyboard": {"color": "#ff3600", "brightness": 100},
+    "camera": True,              # False: açılışta da kapalı tutulur
     # Pil tasarrufu kademeleri: her biri açacağı özelliklerin listesi (lcc/power.py).
     "power_saving": {
         "auto": True,            # pilde kendiliğinden "saver"

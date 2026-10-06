@@ -58,7 +58,7 @@ class Backend:
         """(mod, fan) — bilinmiyorsa None."""
         return None, None
 
-    def apply(self, mode: str, fan: str) -> None:
+    def apply(self, mode: str, fan: str, force: bool = False) -> None:
         raise Unsupported
 
     def needs_setup(self) -> bool:

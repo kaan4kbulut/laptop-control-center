@@ -10,7 +10,7 @@ Window {
     readonly property var info: bridge.info
     readonly property var live: bridge.live
     readonly property var desk: bridge.desk
-    readonly property color accent: page === "monitor" ? Theme.cyan : Theme.purple
+    readonly property color accent: page === "monitor" || page === "fancurve" ? Theme.cyan : Theme.purple
 
     width: Theme.stageW
     height: Theme.stageH
@@ -100,7 +100,8 @@ Window {
             anchors.fill: parent
             source: win.page === "led" ? "LedPage.qml"
                   : win.page === "settings" ? "SettingsPage.qml"
-                  : win.page === "power" ? "PowerPage.qml" : "MonitorPage.qml"
+                  : win.page === "power" ? "PowerPage.qml"
+                  : win.page === "fancurve" ? "FanCurvePage.qml" : "MonitorPage.qml"
         }
 
         // --- hata bildirimi --------------------------------------------------
