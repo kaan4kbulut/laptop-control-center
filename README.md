@@ -63,7 +63,7 @@ bunu WMI kimliğinden kendisi anlar.
 ## Kurulum
 
 ```bash
-git clone https://github.com/OWNER/laptop-control-center
+git clone https://github.com/kaan4kbulut/laptop-control-center
 cd laptop-control-center
 ./install.sh --dry-run   # önce ne yapacağını gör (hiçbir şeyi değiştirmez)
 ./install.sh
@@ -157,7 +157,7 @@ detects this from the WMI GUIDs.
 ## Install
 
 ```bash
-git clone https://github.com/OWNER/laptop-control-center
+git clone https://github.com/kaan4kbulut/laptop-control-center
 cd laptop-control-center
 ./install.sh --dry-run   # show what would be done
 ./install.sh
