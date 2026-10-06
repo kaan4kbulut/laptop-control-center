@@ -134,6 +134,14 @@ _STRINGS: dict[str, tuple[str, str]] = {
     "power.f.kbd.hint": ("Fişte eski parlaklığına döner.", "Restored when plugged in."),
     "power.f.ecores": ("Yalnız verimli çekirdekler", "Efficiency cores only"),
     "power.f.ecores.hint": ("Uygulamalar E çekirdeklerde çalışır; yavaşlar.", "Apps run on E-cores; slower."),
+    "bar.mode": ("{mode} modu", "{mode} mode"),
+    "bar.power.limit": ("GÜÇ SINIRI", "POWER LIMIT"),
+    "bar.fan": ("FAN", "FAN"),
+    "bar.kbd": ("KLAVYE IŞIĞI", "KEYBOARD LIGHT"),
+    "bar.modes": ("GÜÇ MODU", "POWER MODE"),
+    "bar.open": ("Kontrol Merkezini aç", "Open Control Center"),
+    "bar.shortcut": ("Kısayol: Super + F5 ile modlar arasında geç", "Shortcut: Super + F5 cycles modes"),
+    "cpu.short": ("İşlemci", "CPU"),
     "battery.short": ("Pil", "Battery"),
 }
 

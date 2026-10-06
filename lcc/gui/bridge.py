@@ -15,7 +15,7 @@ import traceback
 
 from PySide6.QtCore import Property, QObject, QThread, QTimer, Signal, Slot
 
-from .. import config, desktop, power
+from .. import config, desktop, notify, power
 from .. import hardware as hw
 from ..backends.base import KeyboardState, Unsupported
 from ..i18n import LANG, strings
@@ -160,6 +160,8 @@ class Worker(QObject):
         except Exception as e:
             log.warning("%s failed: %s", action, traceback.format_exc())
             self.failed.emit(f"{action}: {e}")
+        if action in ("mode", "fan", "keyboard") or action.startswith("power"):
+            notify.bar_refresh()
         self._poll(force_desk=True)
 
     def do_mode(self, mode):

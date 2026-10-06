@@ -14,7 +14,7 @@ import signal
 
 from gi.repository import Gio, GLib
 
-from . import config, dbus, power
+from . import config, dbus, notify, power
 from . import hardware as hw
 from .backends.base import SetupRequired, Unsupported
 from .controller import Controller
@@ -36,6 +36,7 @@ class Daemon:
         try:
             if self.ctl.reapply():
                 log.info("reapplied %s for %s", self.ctl.desired(), self.ctl.source())
+                notify.bar_refresh()
         except (SetupRequired, Unsupported) as e:
             log.warning("cannot apply: %s", e)
         except GLib.Error as e:
@@ -58,10 +59,13 @@ class Daemon:
 
     # --- pil tasarrufu ----------------------------------------------------------
     def _power(self, fn) -> None:
+        level = self.power.level
         try:
             fn()
         except Exception:
             log.exception("power saving failed")
+        if self.power.level != level:
+            notify.bar_refresh()
 
     def _evaluate_soon(self) -> None:
         """Dosya değişiklikleri art arda gelir; 300 ms bekleyip bir kez değerlendir."""

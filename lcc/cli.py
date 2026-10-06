@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 import time
 
@@ -98,9 +99,11 @@ def cmd_mode(args) -> int:
         return 0
     mode, fan = ctl.next_mode() if args.mode == "next" else ctl.set_mode(args.mode)
     print(f"{t('mode.' + mode)} · {t('fan.' + fan) if fan else ''}".rstrip(" ·"))
+    from .notify import bar_refresh, mode_changed
     if args.notify:
-        from .notify import mode_changed
         mode_changed(ctl, mode, fan)
+    else:
+        bar_refresh()
     return 0
 
 
@@ -111,6 +114,8 @@ def cmd_fan(args) -> int:
         return 0
     mode, fan = ctl.set_fan(args.fan)
     print(f"{t('mode.' + mode)} · {t('fan.' + fan)}")
+    from .notify import bar_refresh
+    bar_refresh()
     return 0
 
 
@@ -130,6 +135,8 @@ def cmd_kbd(args) -> int:
         cur.color = c.lower()
     b.set_keyboard(cur)
     config.update(keyboard={"color": cur.color, "brightness": cur.brightness})
+    from .notify import bar_refresh
+    bar_refresh()
     return 0
 
 
@@ -187,6 +194,48 @@ def cmd_monitor(args) -> int:
 def cmd_gui(args) -> int:
     from .gui.app import main
     return main(args.page)
+
+
+def cmd_bar(args) -> int:
+    """Omarchy bar eklentisi için hızlı, tek satır JSON (etiketler etkin dilde)."""
+    from . import power
+    from .sensors import Sensors
+    ctl = _controller()
+    b = ctl.backend
+    if args.fans == "on":
+        b.start_monitoring()
+    elif args.fans == "off":
+        # Ana pencere açıksa onun fan verisini kesme.
+        if subprocess.run(["pgrep", "-f", "lcc gui"], capture_output=True).returncode != 0:
+            b.stop_monitoring()
+        return 0
+    s = Sensors().sample()
+    mode, fan = b.current()
+    out = {
+        "mode": mode, "fan": fan,
+        "modes": [{"id": m, "label": t("mode." + m)} for m in ctl.caps.modes],
+        "fans": [{"id": f, "label": t("fan." + f)} for f in ctl.caps.fan_modes],
+        "pl1": s.cpu_power_limit, "cpuTemp": s.cpu_temp,
+        "fanSpeeds": b.fan_speeds(),
+        "gpuSleeping": bool(s.gpu and s.gpu.sleeping),
+        "gpuTemp": s.gpu.temp if s.gpu else None,
+        "onBattery": s.on_battery, "battery": s.battery,
+        "power": power.status()["level"],
+        "keyboard": None,
+        "labels": {k: t(k) for k in (
+            "app.title", "bar.mode", "bar.power.limit", "bar.fan", "bar.kbd", "bar.open",
+            "bar.shortcut", "bar.modes", "cpu.short", "fan.cpu", "fan.gpu", "gpu.short", "gpu.sleeping",
+            "power.title", "power.off", "power.saver", "power.ultra")},
+    }
+    if ctl.caps.keyboard:
+        try:
+            k = b.keyboard()
+            out["keyboard"] = {"brightness": k.brightness, "max": ctl.caps.keyboard.brightness_max,
+                               "color": k.color}
+        except Exception:
+            pass
+    print(json.dumps(out, ensure_ascii=False))
+    return 0
 
 
 def cmd_power(args) -> int:
@@ -258,6 +307,10 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("gui", help="ana pencere / main window")
     s.add_argument("page", nargs="?", default="monitor", choices=["monitor", "led", "settings", "power"])
     s.set_defaults(func=cmd_gui)
+
+    s = sub.add_parser("bar", help="bar eklentisi için JSON / JSON for the bar plugin")
+    s.add_argument("--fans", choices=["on", "off"], help="fan ölçümünü aç/kapat / toggle fan sampling")
+    s.set_defaults(func=cmd_bar)
 
     s = sub.add_parser("power", help="pil tasarrufu / power saving")
     s.add_argument("level", nargs="?", choices=["auto", "off", "saver", "ultra"])

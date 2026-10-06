@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "laptop-control-center",
+  "name": "Laptop Control Center",
+  "version": "0.1.0",
+  "author": "laptop-control-center",
+  "description": "Performance mode, fans, keyboard light and power saving",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Control Center",
+    "description": "Performance mode, fans, keyboard light and power saving",
+    "category": "System",
+    "allowMultiple": false
+  }
+}
