@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Control Center
+Name[tr]=Kontrol Merkezi
+GenericName=Laptop Control Center
+Comment=Performance modes, fans, keyboard light and power saving
+Comment[tr]=Performans modları, fanlar, klavye ışığı ve pil tasarrufu
+Exec=@BINDIR@/lcc gui
+Icon=preferences-system-power
+Terminal=false
+Categories=Settings;HardwareSettings;System;
+Keywords=fan;performance;battery;keyboard;power;
+StartupWMClass=laptop-control-center
