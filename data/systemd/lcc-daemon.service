@@ -1,0 +1,12 @@
+[Unit]
+Description=Laptop Control Center (reapply mode on power source change)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=@BINDIR@/lcc daemon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

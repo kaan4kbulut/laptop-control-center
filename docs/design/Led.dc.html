@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kontrol Merkezi · LED Klavye</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600&amp;family=Rajdhani:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#050608}
+a{color:#c9a6ff}a:hover{color:#ffffff}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 760px; overflow: hidden; background: #050608; color: #e8ecf2; font-family: 'Exo 2', sans-serif;">
+
+  <svg width="1280" height="760" viewBox="0 0 1280 760" style="position: absolute; left: 0; top: 0; pointer-events: none;" aria-hidden="true">
+    <g fill="none" stroke="#ffffff" stroke-opacity="0.045">
+      <ellipse cx="1180" cy="380" rx="520" ry="470"></ellipse>
+      <ellipse cx="1180" cy="380" rx="545" ry="490"></ellipse>
+      <ellipse cx="1180" cy="380" rx="570" ry="510"></ellipse>
+      <ellipse cx="1180" cy="380" rx="595" ry="530"></ellipse>
+      <ellipse cx="1180" cy="380" rx="620" ry="550"></ellipse>
+      <ellipse cx="1180" cy="380" rx="645" ry="570"></ellipse>
+      <ellipse cx="1180" cy="380" rx="670" ry="590"></ellipse>
+      <ellipse cx="1180" cy="380" rx="695" ry="610"></ellipse>
+      <ellipse cx="1180" cy="380" rx="720" ry="630"></ellipse>
+      <ellipse cx="1180" cy="380" rx="745" ry="650"></ellipse>
+    </g>
+    <path d="M 430 160 A 240 240 0 0 0 430 640" fill="none" stroke="#1b1f27" stroke-width="2"></path>
+    <path d="M 430 230 A 170 170 0 0 0 430 570 L 720 570 A 170 170 0 0 0 720 230 Z" fill="#000000" stroke="#1b1f27" stroke-width="2"></path>
+  </svg>
+
+  <div style="position: absolute; left: 0; top: 0; width: 1280px; height: 48px; display: flex; align-items: center; justify-content: center;">
+    <div style="font-size: 19px; font-weight: 500; letter-spacing: 0.5px;">Kontrol Merkezi</div>
+    <div style="position: absolute; right: 12px; top: 8px; display: flex; gap: 4px;">
+      <button aria-label="Küçült" style="width: 36px; height: 32px; background: transparent; border: 0; color: #c9d1dc; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h10"></path></svg></button>
+      <button aria-label="Büyüt" style="width: 36px; height: 32px; background: transparent; border: 0; color: #c9d1dc; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="10" height="10"></rect></svg></button>
+      <button aria-label="Kapat" style="width: 36px; height: 32px; background: transparent; border: 0; color: #c9d1dc; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
+    </div>
+  </div>
+
+  <nav style="position: absolute; left: 0; top: 100px; width: 180px; display: flex; flex-direction: column; gap: 6px;">
+    <a href="Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-left: 3px solid transparent; color: #a3acba; text-decoration: none; font-size: 14px;">Sistem İzleme</a>
+    <a href="Led.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-left: 3px solid #8b3dff; color: #ffffff; text-decoration: none; font-size: 14px;">LED Klavye</a>
+    <a href="Ayarlar.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-left: 3px solid transparent; color: #a3acba; text-decoration: none; font-size: 14px;">Yapılandırma</a>
+  </nav>
+
+  <div style="position: absolute; left: 230px; top: 92px; display: flex; align-items: center; gap: 12px;">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#e8ecf2" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M9 18h6M10 21h4"></path><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"></path></svg>
+    <div style="font-size: 26px; font-weight: 300;">LED Klavye</div>
+  </div>
+
+  <sc-for list="{{swatches}}" as="s" hint-placeholder-count="12">
+    <button onClick="{{s.pick}}" aria-label="{{s.name}}" aria-pressed="{{s.pressed}}" style="{{s.style}}"></button>
+  </sc-for>
+
+  <div style="position: absolute; left: 470px; top: 290px; width: 260px; display: flex; flex-direction: column; gap: 22px;">
+    <div>
+      <div style="font-size: 12px; letter-spacing: 1.5px; color: #8a93a3; margin-bottom: 10px;">EFEKT</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <sc-for list="{{effects}}" as="e" hint-placeholder-count="4">
+          <button onClick="{{e.pick}}" aria-pressed="{{e.pressed}}" style="{{e.style}}">{{e.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+    <label style="display: flex; align-items: center; gap: 12px; font-size: 14px; color: #dfe5ee; min-height: 44px;">
+      <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #8b3dff;">
+      Boşta kalınca ışığı kapat
+    </label>
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: -14px; padding-left: 30px;">
+      <label style="display: flex; flex-direction: column; font-size: 11px; color: #8a93a3; gap: 4px;">Dk<input value="0" style="width: 56px; height: 32px; background: #000; border: 1px solid #c9d1dc; color: #fff; text-align: center; font-family: Rajdhani, sans-serif; font-size: 18px;"></label>
+      <span style="padding-top: 16px;">:</span>
+      <label style="display: flex; flex-direction: column; font-size: 11px; color: #8a93a3; gap: 4px;">Sn<input value="30" style="width: 56px; height: 32px; background: #000; border: 1px solid #c9d1dc; color: #fff; text-align: center; font-family: Rajdhani, sans-serif; font-size: 18px;"></label>
+    </div>
+  </div>
+
+  <div style="{{kbdFrame}}">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <sc-for list="{{r.keys}}" as="k" hint-placeholder-count="9">
+          <div style="{{k.style}}"></div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+  <div style="{{padStyle}}"></div>
+  <div style="position: absolute; left: 820px; top: 520px; width: 400px; text-align: center; font-size: 13px; color: #a3acba;">Seçili renk <span style="color: #e8ecf2; font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 15px;">{{colorName}}</span> · Efekt <span style="color: #e8ecf2;">{{effectName}}</span></div>
+
+  <div style="position: absolute; left: 860px; top: 600px; width: 320px;">
+    <div style="text-align: center; font-size: 14px; margin-bottom: 14px;">Parlaklık</div>
+    <div style="position: relative; height: 44px;">
+      <div style="position: absolute; left: 22px; right: 22px; top: 20px; height: 3px; background: #2a2f38;"></div>
+      <div style="{{trackFill}}"></div>
+      <div style="position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between;">
+        <sc-for list="{{levels}}" as="l" hint-placeholder-count="5">
+          <button onClick="{{l.pick}}" aria-label="{{l.aria}}" aria-pressed="{{l.pressed}}" style="width: 44px; height: 44px; background: transparent; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 14px; gap: 10px;">
+            <span style="{{l.knob}}"></span>
+            <span style="font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">{{l.n}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { color: 0, effect: 'static', level: 4 };
+  }
+  renderVals() {
+    const palette = [
+      ['#ff3600', 'Turuncu-kırmızı (şu anki)'], ['#ff8a00', 'Turuncu'], ['#ffd000', 'Sarı'],
+      ['#b6ff00', 'Fıstık yeşili'], ['#22e55a', 'Yeşil'], ['#00e5c0', 'Turkuaz'],
+      ['#00c8ff', 'Camgöbeği'], ['#2f6bff', 'Mavi'], ['#5a3dff', 'Lacivert'],
+      ['#a23dff', 'Mor'], ['#ff2dd2', 'Pembe'], ['#ffffff', 'Beyaz']
+    ];
+    const n = palette.length;
+    const swatches = palette.map((p, i) => {
+      const t = (90 + i * 180 / (n - 1)) * Math.PI / 180;
+      const x = 430 + 205 * Math.cos(t) - 19;
+      const y = 400 - 205 * Math.sin(t) - 19;
+      const on = this.state.color === i;
+      return {
+        name: p[1], pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ color: i }),
+        style: 'position:absolute;left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;width:38px;height:38px;border-radius:50%;cursor:pointer;background:' + p[0] + ';border:' + (on ? '3px solid #ffffff' : '2px solid #050608') + ';box-shadow:' + (on ? '0 0 16px ' + p[0] : '0 0 6px ' + p[0] + '66') + ';'
+      };
+    });
+    const col = palette[this.state.color][0];
+    const alpha = [0, 0.3, 0.5, 0.75, 1][this.state.level];
+    const hex = (a) => Math.round(a * 255).toString(16).padStart(2, '0');
+    const keyColor = this.state.level === 0 ? '#2a2f38' : col + hex(alpha);
+    const glow = this.state.level === 0 ? 'none' : '0 0 ' + (4 + this.state.level * 3) + 'px ' + col + hex(alpha * 0.8);
+    const keyStyle = (w) => 'width:' + w + 'px;height:36px;border-radius:5px;border:1.5px solid ' + keyColor + ';box-shadow:' + glow + ', inset 0 0 6px ' + col + hex(alpha * 0.35) + ';';
+    const row = (ws) => ({ keys: ws.map((w) => ({ style: keyStyle(w) })) });
+    const rows = [
+      row([40, 40, 40, 40, 40, 40, 40, 40, 40]),
+      row([40, 40, 40, 40, 40, 40, 40, 40, 62]),
+      row([40, 40, 40, 40, 40, 40, 40, 40, 40]),
+      row([40, 40, 180, 40, 40, 40])
+    ];
+    const effectDefs = [
+      ['static', 'Sabit'], ['breathe', 'Nefes'], ['cycle', 'Döngü'], ['wave', 'Dalga'],
+      ['dance', 'Dans'], ['flash', 'Flaş'], ['random', 'Rastgele'], ['tempo', 'Tempo']
+    ];
+    const effects = effectDefs.map((e) => {
+      const on = this.state.effect === e[0];
+      return {
+        label: e[1], pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ effect: e[0] }),
+        style: 'min-height:36px;padding:0 14px;border-radius:18px;cursor:pointer;font-size:13px;background:' + (on ? 'rgba(139,61,255,0.18)' : 'transparent') + ';color:' + (on ? '#ffffff' : '#a3acba') + ';border:1.5px solid ' + (on ? '#8b3dff' : '#2a2f38') + ';'
+      };
+    });
+    const levels = [0, 1, 2, 3, 4].map((i) => {
+      const on = this.state.level === i;
+      return {
+        n: i, aria: 'Parlaklık ' + i, pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ level: i }),
+        knob: 'display:block;width:' + (on ? 6 : 8) + 'px;height:' + (on ? 22 : 8) + 'px;margin-top:' + (on ? -7 : 0) + 'px;border-radius:' + (on ? 2 : 4) + 'px;background:' + (on ? '#ffffff' : '#5b6270') + ';box-shadow:' + (on ? '0 0 8px #8b3dff' : 'none') + ';'
+      };
+    });
+    return {
+      swatches, rows, effects, levels,
+      colorName: palette[this.state.color][1],
+      effectName: effectDefs.find((e) => e[0] === this.state.effect)[1],
+      kbdFrame: 'position:absolute;left:820px;top:210px;width:400px;padding:26px 20px;box-sizing:border-box;display:flex;flex-direction:column;gap:9px;border-radius:14px;border:2px solid ' + keyColor + ';box-shadow:' + glow + ';',
+      padStyle: 'position:absolute;left:940px;top:440px;width:160px;height:62px;border-radius:0 0 14px 14px;border:2px solid ' + keyColor + ';border-top:0;box-shadow:' + glow + ';',
+      trackFill: 'position:absolute;left:22px;top:20px;height:3px;width:' + (this.state.level * 69) + 'px;background:#8b3dff;box-shadow:0 0 8px #8b3dff;'
+    };
+  }
+}
+</script>
+</body>
+</html>

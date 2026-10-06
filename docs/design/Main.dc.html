@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kontrol Merkezi · Sistem İzleme</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600&amp;family=Rajdhani:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#050608}
+a{color:#9fdcff}a:hover{color:#ffffff}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 760px; overflow: hidden; background: #050608; color: #e8ecf2; font-family: 'Exo 2', sans-serif;">
+
+  <svg width="1280" height="760" viewBox="0 0 1280 760" style="position: absolute; left: 0; top: 0; pointer-events: none;" aria-hidden="true">
+    <g fill="none" stroke="#ffffff" stroke-opacity="0.045">
+      <ellipse cx="1180" cy="380" rx="520" ry="470"></ellipse>
+      <ellipse cx="1180" cy="380" rx="545" ry="490"></ellipse>
+      <ellipse cx="1180" cy="380" rx="570" ry="510"></ellipse>
+      <ellipse cx="1180" cy="380" rx="595" ry="530"></ellipse>
+      <ellipse cx="1180" cy="380" rx="620" ry="550"></ellipse>
+      <ellipse cx="1180" cy="380" rx="645" ry="570"></ellipse>
+      <ellipse cx="1180" cy="380" rx="670" ry="590"></ellipse>
+      <ellipse cx="1180" cy="380" rx="695" ry="610"></ellipse>
+      <ellipse cx="1180" cy="380" rx="720" ry="630"></ellipse>
+      <ellipse cx="1180" cy="380" rx="745" ry="650"></ellipse>
+      <ellipse cx="1180" cy="380" rx="770" ry="670"></ellipse>
+      <ellipse cx="1180" cy="380" rx="795" ry="690"></ellipse>
+    </g>
+  </svg>
+
+  <div style="position: absolute; left: 0; top: 0; width: 1280px; height: 48px; display: flex; align-items: center; justify-content: center;">
+    <div style="font-size: 19px; font-weight: 500; letter-spacing: 0.5px;">Kontrol Merkezi</div>
+    <div style="position: absolute; right: 12px; top: 8px; display: flex; gap: 4px;">
+      <button aria-label="Küçült" style="width: 36px; height: 32px; background: transparent; border: 0; color: #c9d1dc; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h10"></path></svg></button>
+      <button aria-label="Büyüt" style="width: 36px; height: 32px; background: transparent; border: 0; color: #c9d1dc; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="10" height="10"></rect></svg></button>
+      <button aria-label="Kapat" style="width: 36px; height: 32px; background: transparent; border: 0; color: #c9d1dc; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
+    </div>
+  </div>
+
+  <nav style="position: absolute; left: 0; top: 100px; width: 180px; display: flex; flex-direction: column; gap: 6px;">
+    <a href="Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-left: 3px solid #22b8ff; color: #ffffff; text-decoration: none; font-size: 14px;">Sistem İzleme</a>
+    <a href="Led.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-left: 3px solid transparent; color: #a3acba; text-decoration: none; font-size: 14px;">LED Klavye</a>
+    <a href="Ayarlar.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-left: 3px solid transparent; color: #a3acba; text-decoration: none; font-size: 14px;">Yapılandırma</a>
+  </nav>
+
+  <div style="position: absolute; left: 230px; top: 84px; font-size: 14px; line-height: 1.7; color: #dfe5ee;">
+    <div>13th Gen Intel® Core™ i9-13900HX</div>
+    <div>NVIDIA GeForce RTX 5070 Ti Laptop GPU</div>
+  </div>
+
+  <div style="position: absolute; right: 36px; top: 84px; display: flex; gap: 10px;">
+    <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+      <button onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" style="{{m.btnStyle}}">
+        <sc-if value="{{m.isPerf}}" hint-placeholder-val="{{true}}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 16a8 8 0 1 1 16 0"></path><path d="M12 16l5-6"></path><path d="M6.5 11.5l1 .6M12 8v1.2M17.5 11.5l-1 .6"></path></svg>
+        </sc-if>
+        <sc-if value="{{m.isEnt}}" hint-placeholder-val="{{false}}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"></path><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"></path></svg>
+        </sc-if>
+        <sc-if value="{{m.isQuiet}}" hint-placeholder-val="{{false}}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 7a7 7 0 0 0 0 10"></path><path d="M5 4.5a11 11 0 0 0 0 15"></path><circle cx="13" cy="12" r="2"></circle></svg>
+        </sc-if>
+        <span>{{m.label}}</span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="position: absolute; right: 40px; top: 140px; text-align: right; font-size: 13px; color: #a3acba;">
+    İşlemci güç sınırı <span style="color: #e8ecf2; font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 16px;">{{modeLimit}}</span> · {{modeNote}}
+  </div>
+
+  <svg width="1280" height="760" viewBox="0 0 1280 760" style="position: absolute; left: 0; top: 0; pointer-events: none;" aria-hidden="true">
+    <defs>
+      <linearGradient id="gFill" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#0a4dff"></stop>
+        <stop offset="1" stop-color="#22d3ff"></stop>
+      </linearGradient>
+      <linearGradient id="gScale" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#22b8ff"></stop>
+        <stop offset="0.6" stop-color="#8b3dff"></stop>
+        <stop offset="1" stop-color="#ff2d55"></stop>
+      </linearGradient>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"></feGaussianBlur></filter>
+    </defs>
+    <path d="M 386 590 A 280 280 0 0 1 386 150" fill="none" stroke="url(#gScale)" stroke-width="3"></path>
+    <path d="M 416.6 574.8 A 250 250 0 0 1 416.6 165.2" fill="none" stroke="#14171d" stroke-width="40"></path>
+    <path d="M 416.6 574.8 A 250 250 0 0 1 314.6 417.7" fill="none" stroke="url(#gFill)" stroke-width="40" filter="url(#glow)" opacity="0.6"></path>
+    <path d="M 416.6 574.8 A 250 250 0 0 1 314.6 417.7" fill="none" stroke="url(#gFill)" stroke-width="40"></path>
+    <path d="M 310 370 L 500 330" stroke="#3a7bff" stroke-width="2"></path>
+    <path d="M 660 196.8 A 200 200 0 0 1 660 543.2" fill="none" stroke="#e8ecf2" stroke-width="2"></path>
+    <path d="M 700 160 A 245 245 0 0 1 700 580" fill="none" stroke="#2a2f38" stroke-width="10"></path>
+    <path d="M 700 160 A 245 245 0 0 1 760 230" fill="none" stroke="#e8ecf2" stroke-width="10"></path>
+    <path d="M 760 510 A 245 245 0 0 1 700 580" fill="none" stroke="#e8ecf2" stroke-width="10"></path>
+    <path d="M 923.7 160 A 420 420 0 0 1 904 610.9" fill="none" stroke="#22b8ff" stroke-width="2.5"></path>
+    <path d="M 923.7 160 A 420 420 0 0 1 904 610.9" fill="none" stroke="#22b8ff" stroke-width="8" opacity="0.25" filter="url(#glow)"></path>
+    <path d="M 935 205 L 1150 205" stroke="#22b8ff" stroke-width="1.5"></path>
+  </svg>
+
+  <div style="position: absolute; left: 383px; top: 597px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">0</div>
+  <div style="position: absolute; left: 318px; top: 533px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">1</div>
+  <div style="position: absolute; left: 275px; top: 451px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">2</div>
+  <div style="position: absolute; left: 260px; top: 360px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">3</div>
+  <div style="position: absolute; left: 275px; top: 269px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">4</div>
+  <div style="position: absolute; left: 318px; top: 187px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">5</div>
+  <div style="position: absolute; left: 383px; top: 122px; font-family: Rajdhani, sans-serif; font-size: 14px; color: #ff6b81;">6</div>
+  <div style="position: absolute; left: 372px; top: 628px; font-size: 12px; color: #8a93a3;">×1000 MHz</div>
+
+  <div style="position: absolute; left: 400px; top: 196px;">
+    <div style="font-size: 12px; color: #8a93a3;">İşlemci frekansı</div>
+    <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 48px; line-height: 1;">2400 <span style="font-size: 14px; color: #a3acba;">MHz</span></div>
+  </div>
+  <div style="position: absolute; left: 470px; top: 340px; font-size: 40px; font-weight: 300; letter-spacing: 2px;">CPU</div>
+  <div style="position: absolute; left: 520px; top: 420px; text-align: left;">
+    <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 46px; line-height: 1;">52<span style="font-size: 15px; color: #a3acba;"> °C</span></div>
+    <div style="font-size: 12px; color: #8a93a3;">Sıcaklık</div>
+  </div>
+  <div style="position: absolute; left: 618px; top: 186px; font-size: 11px; color: #8a93a3;">100 °C</div>
+  <div style="position: absolute; left: 626px; top: 540px; font-size: 11px; color: #8a93a3;">0 °C</div>
+
+  <div style="position: absolute; left: 730px; top: 230px;">
+    <div style="font-size: 12px; color: #8a93a3;">Disk · 254 GB</div>
+    <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 26px;">17<span style="font-size: 13px; color: #a3acba;"> %</span></div>
+  </div>
+  <div style="position: absolute; left: 730px; top: 440px;">
+    <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 26px;">13<span style="font-size: 13px; color: #a3acba;"> %</span></div>
+    <div style="font-size: 12px; color: #8a93a3;">RAM · 31 GB</div>
+  </div>
+
+  <div style="position: absolute; left: 940px; top: 158px; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; line-height: 1.35;">FAN HIZ<br>KONTROLÜ</div>
+  <sc-for list="{{fans}}" as="f" hint-placeholder-count="4">
+    <button onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="{{f.style}}">
+      <span style="{{f.dot}}"></span>
+      <span>{{f.label}}</span>
+    </button>
+  </sc-for>
+  <a href="Main.dc.html" style="position: absolute; left: 1000px; top: 505px; font-size: 12px; text-decoration: none;">Fan eğrisini düzenle ›</a>
+
+  <div style="position: absolute; left: 230px; top: 660px; width: 300px;">
+    <div style="height: 8px; background: repeating-linear-gradient(115deg, #3a404b 0 3px, transparent 3px 7px);"></div>
+    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 13px; color: #a3acba;"><span>İşlemci kullanımı</span><span style="color: #e8ecf2; font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 16px;">6 %</span></div>
+  </div>
+  <div style="position: absolute; left: 230px; top: 712px; width: 300px;">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; color: #a3acba;"><span>Ekran kartı kullanımı</span><span style="color: #e8ecf2; font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 16px;">0 %</span></div>
+  </div>
+  <div style="position: absolute; left: 580px; top: 652px; text-align: center; width: 180px;">
+    <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 22px;">Uykuda</div>
+    <div style="font-size: 12px; color: #8a93a3;">Ekran kartı · 52 °C</div>
+    <div style="font-size: 12px; color: #8a93a3; margin-top: 2px;">Güç sınırı 140 W'a kadar</div>
+  </div>
+
+  <div style="position: absolute; left: 860px; top: 640px; display: flex; gap: 44px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#8a93a3" stroke-width="1.6" aria-hidden="true"><circle cx="22" cy="22" r="4"></circle><path d="M22 18c0-8 6-12 10-9s-2 9-8 11M26 22c8 0 12 6 9 10s-9-2-11-8M22 26c0 8-6 12-10 9s2-9 8-11M18 22c-8 0-12-6-9-10s9 2 11 8"></path></svg>
+      <div>
+        <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 26px; line-height: 1;">{{cpuFan}}<span style="font-size: 13px; color: #a3acba;"> %</span></div>
+        <div style="font-size: 12px; color: #8a93a3;">İşlemci fanı</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#8a93a3" stroke-width="1.6" aria-hidden="true"><circle cx="22" cy="22" r="4"></circle><path d="M22 18c0-8 6-12 10-9s-2 9-8 11M26 22c8 0 12 6 9 10s-9-2-11-8M22 26c0 8-6 12-10 9s2-9 8-11M18 22c-8 0-12-6-9-10s9 2 11 8"></path></svg>
+      <div>
+        <div style="font-family: Rajdhani, sans-serif; font-weight: 600; font-size: 26px; line-height: 1;">{{gpuFan}}<span style="font-size: 13px; color: #a3acba;"> %</span></div>
+        <div style="font-size: 12px; color: #8a93a3;">Ekran kartı fanı</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#22b8ff","options":["#22b8ff","#8b3dff","#ff3b5c"]},"$preview":{"width":1280,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'perf', fan: 'auto' };
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#22b8ff';
+    const modeDefs = [
+      { id: 'perf', label: 'Performans', limit: '135 W', note: 'en yüksek güç, fanlar daha sesli' },
+      { id: 'ent', label: 'Eğlence', limit: '44 W', note: 'dengeli, günlük kullanım' },
+      { id: 'quiet', label: 'Sessiz', limit: '28 W', note: 'en sessiz, düşük güç' }
+    ];
+    const modes = modeDefs.map((m) => {
+      const on = this.state.mode === m.id;
+      return {
+        ...m,
+        isPerf: m.id === 'perf', isEnt: m.id === 'ent', isQuiet: m.id === 'quiet',
+        pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ mode: m.id }),
+        btnStyle: 'display:flex;align-items:center;gap:10px;min-height:44px;padding:0 20px;border-radius:24px;font-size:15px;cursor:pointer;background:' + (on ? 'rgba(34,184,255,0.08)' : 'transparent') + ';color:' + (on ? '#ffffff' : '#c9d1dc') + ';border:2px solid ' + (on ? accent : 'transparent') + ';box-shadow:' + (on ? '0 0 14px ' + accent + ', inset 0 0 8px ' + accent + '55' : 'none') + ';'
+      };
+    });
+    const cur = modeDefs.find((m) => m.id === this.state.mode);
+    const fanDefs = [
+      { id: 'auto', label: 'Otomatik', x: 950, y: 230, cpu: 34, gpu: 28 },
+      { id: 'silent', label: 'Sessiz', x: 966, y: 301, cpu: 20, gpu: 18 },
+      { id: 'max', label: 'Maksimum', x: 970, y: 374, cpu: 100, gpu: 100 },
+      { id: 'custom', label: 'Özel', x: 961, y: 447, cpu: 45, gpu: 40 }
+    ];
+    const fans = fanDefs.map((f) => {
+      const on = this.state.fan === f.id;
+      return {
+        ...f,
+        pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ fan: f.id }),
+        style: 'position:absolute;left:' + f.x + 'px;top:' + f.y + 'px;display:flex;align-items:center;gap:14px;min-height:44px;padding:0 8px;background:transparent;border:0;cursor:pointer;font-size:15px;color:' + (on ? '#ffffff' : '#8a93a3') + ';',
+        dot: 'display:inline-block;width:14px;height:14px;border-radius:50%;background:' + (on ? accent : '#050608') + ';border:2px solid ' + accent + ';box-shadow:' + (on ? '0 0 10px ' + accent : 'none') + ';'
+      };
+    });
+    const curFan = fanDefs.find((f) => f.id === this.state.fan);
+    return {
+      modes, fans,
+      modeLimit: cur.limit, modeNote: cur.note,
+      cpuFan: curFan.cpu, gpuFan: curFan.gpu
+    };
+  }
+}
+</script>
+</body>
+</html>

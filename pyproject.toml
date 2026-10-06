@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "laptop-control-center"
+dynamic = ["version"]
+description = "Hardware-aware control center for Linux laptops (performance modes, fans, keyboard light, battery)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+dependencies = ["PyGObject"]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.5"]
+
+[project.scripts]
+lcc = "lcc.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "lcc.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["lcc*"]

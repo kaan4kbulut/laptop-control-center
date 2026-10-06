@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kontrol Merkezi · Bar paneli</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600&amp;family=Rajdhani:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1a1b20}
+a{color:#9fdcff}a:hover{color:#ffffff}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; width: 460px; height: 640px; overflow: hidden; background: #1a1b20; color: #e8ecf2; font-family: 'Exo 2', sans-serif;">
+  <div style="height: 30px; background: #101114; display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 0 14px; font-size: 12px; color: #a3acba;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a3acba" stroke-width="2" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"></path><path d="M16 9a4 4 0 0 1 0 6"></path></svg>
+    <span style="display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: rgba(34,184,255,0.15); color: #ffffff;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22b8ff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 16a8 8 0 1 1 16 0"></path><path d="M12 16l5-6"></path></svg>
+      {{barLabel}}
+    </span>
+    <span>14:32</span>
+  </div>
+
+  <div style="position: absolute; right: 12px; top: 40px; width: 420px; box-sizing: border-box; padding: 20px; border-radius: 14px; background: #050608; border: 1px solid #22262e; box-shadow: 0 12px 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 18px;">
+
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid #22b8ff; box-shadow: 0 0 14px #22b8ff; display: flex; align-items: center; justify-content: center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e8ecf2" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 16a8 8 0 1 1 16 0"></path><path d="M12 16l5-6"></path></svg>
+      </div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 18px; font-weight: 600;">{{heroTitle}}</div>
+        <div style="font-size: 11px; letter-spacing: 1.4px; color: #8a93a3;">GÜÇ SINIRI {{heroLimit}}</div>
+      </div>
+      <div style="text-align: right; font-family: Rajdhani, sans-serif;">
+        <div style="font-size: 22px; font-weight: 600; line-height: 1;">52 °C</div>
+        <div style="font-size: 12px; color: #8a93a3;">İşlemci</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #8a93a3; margin-bottom: 10px;">GÜÇ MODU</div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+        <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+          <button onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" style="{{m.style}}">
+            <span style="font-size: 14px;">{{m.label}}</span>
+            <span style="font-family: Rajdhani, sans-serif; font-size: 13px; color: #8a93a3;">{{m.limit}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #8a93a3; margin-bottom: 10px;">FAN</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px;">
+        <sc-for list="{{fans}}" as="f" hint-placeholder-count="4">
+          <button onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="{{f.style}}">{{f.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-family: Rajdhani, sans-serif;">
+      <div style="padding: 10px; border-radius: 10px; background: #0d0f13;"><div style="font-size: 20px; font-weight: 600;">{{cpuFan}} %</div><div style="font-family: 'Exo 2', sans-serif; font-size: 11px; color: #8a93a3;">İşlemci fanı</div></div>
+      <div style="padding: 10px; border-radius: 10px; background: #0d0f13;"><div style="font-size: 20px; font-weight: 600;">{{gpuFan}} %</div><div style="font-family: 'Exo 2', sans-serif; font-size: 11px; color: #8a93a3;">Ekran kartı fanı</div></div>
+      <div style="padding: 10px; border-radius: 10px; background: #0d0f13;"><div style="font-size: 20px; font-weight: 600;">Uykuda</div><div style="font-family: 'Exo 2', sans-serif; font-size: 11px; color: #8a93a3;">Ekran kartı</div></div>
+    </div>
+
+    <div>
+      <div style="font-size: 11px; letter-spacing: 1.5px; color: #8a93a3; margin-bottom: 10px;">KLAVYE IŞIĞI</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="width: 28px; height: 28px; border-radius: 50%; background: #ff3600; box-shadow: 0 0 10px #ff3600; border: 2px solid #ffffff;"></span>
+        <div style="flex-grow: 1; position: relative; height: 4px; background: #2a2f38;"><div style="position: absolute; left: 0; top: 0; height: 4px; width: 100%; background: #8b3dff;"></div></div>
+        <span style="font-family: Rajdhani, sans-serif; font-size: 14px; color: #c9d1dc;">4/4</span>
+      </div>
+    </div>
+
+    <a href="Main.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 22px; border: 1.5px solid #2a2f38; text-decoration: none; font-size: 14px;">Kontrol Merkezini aç</a>
+    <div style="text-align: center; font-size: 11px; color: #6b7382; margin-top: -8px;">Kısayol: Super + F5 ile modlar arasında geç</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":460,"height":640}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'perf', fan: 'auto' };
+  }
+  renderVals() {
+    const modeDefs = [
+      { id: 'perf', label: 'Performans', limit: '135 W' },
+      { id: 'ent', label: 'Eğlence', limit: '44 W' },
+      { id: 'quiet', label: 'Sessiz', limit: '28 W' }
+    ];
+    const modes = modeDefs.map((m) => {
+      const on = this.state.mode === m.id;
+      return {
+        ...m, pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ mode: m.id }),
+        style: 'display:flex;flex-direction:column;align-items:center;gap:4px;min-height:64px;justify-content:center;border-radius:12px;cursor:pointer;color:' + (on ? '#ffffff' : '#c9d1dc') + ';background:' + (on ? 'rgba(34,184,255,0.08)' : '#0d0f13') + ';border:2px solid ' + (on ? '#22b8ff' : 'transparent') + ';box-shadow:' + (on ? '0 0 12px #22b8ff' : 'none') + ';'
+      };
+    });
+    const fanDefs = [
+      { id: 'auto', label: 'Otomatik', cpu: 34, gpu: 28 },
+      { id: 'silent', label: 'Sessiz', cpu: 20, gpu: 18 },
+      { id: 'max', label: 'Maks.', cpu: 100, gpu: 100 },
+      { id: 'custom', label: 'Özel', cpu: 45, gpu: 40 }
+    ];
+    const fans = fanDefs.map((f) => {
+      const on = this.state.fan === f.id;
+      return {
+        ...f, pressed: on ? 'true' : 'false',
+        pick: () => this.setState({ fan: f.id }),
+        style: 'min-height:40px;border-radius:20px;cursor:pointer;font-size:13px;color:' + (on ? '#ffffff' : '#a3acba') + ';background:' + (on ? 'rgba(34,184,255,0.12)' : 'transparent') + ';border:1.5px solid ' + (on ? '#22b8ff' : '#2a2f38') + ';'
+      };
+    });
+    const cur = modeDefs.find((m) => m.id === this.state.mode);
+    const curFan = fanDefs.find((f) => f.id === this.state.fan);
+    return {
+      modes, fans,
+      heroTitle: cur.label + ' modu', heroLimit: cur.limit, barLabel: cur.label,
+      cpuFan: curFan.cpu, gpuFan: curFan.gpu
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+// laptop-control-center: lcc-daemon bir kullanıcı servisi olduğu için oturum dışında
+// çalışır ve polkit onu "etkin oturum" saymaz. Yöneticiler (wheel) güç tasarrufu
+// yardımcısını parolasız çalıştırabilsin. Yardımcı yalnızca dar bir komut listesi kabul eder.
+polkit.addRule(function (action, subject) {
+    if (action.id == "io.github.laptop-control-center.helper" && subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});

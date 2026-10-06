@@ -1,0 +1,59 @@
+#!/bin/bash
+# laptop-control-center root yardımcısı. pkexec ile çağrılır; polkit kuralı etkin
+# oturumdaki kullanıcıya parolasız izin verir. Yalnızca aşağıdaki dar işleri yapar:
+#   aspm <default|performance|powersave|powersupersave>
+#   wifi-powersave <on|off>
+#   service <stop|start> <birim>     (yalnızca ALLOWED listesindekiler)
+#   cpus <liste|all>                 (çağıran kullanıcının oturum dilimi)
+#   rfkill bluetooth <block|unblock>
+#   version
+set -euo pipefail
+export PATH=/usr/sbin:/usr/bin
+
+VERSION=1
+ALLOWED=(nvidia-powerd avahi-daemon cups ollama)
+
+die() { echo "lcc-helper: $*" >&2; exit 2; }
+
+case "${1:-}" in
+  version)
+    echo "$VERSION" ;;
+  aspm)
+    [[ ${2:-} =~ ^(default|performance|powersave|powersupersave)$ ]] || die "geçersiz ASPM politikası"
+    echo "$2" > /sys/module/pcie_aspm/parameters/policy ;;
+  wifi-powersave)
+    [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
+    for dev in $(iw dev | awk '$1 == "Interface" {print $2}'); do
+      iw dev "$dev" set power_save "$2"
+    done ;;
+  service)
+    [[ ${2:-} =~ ^(stop|start)$ ]] || die "stop|start bekleniyor"
+    unit=${3:-}
+    ok=0
+    for a in "${ALLOWED[@]}"; do [[ $unit == "$a" ]] && ok=1; done
+    (( ok )) || die "izin verilmeyen birim: $unit"
+    # Kurulu olmayan servis (ör. ollama) sessizce atlanır.
+    systemctl cat "$unit.service" >/dev/null 2>&1 || exit 0
+    # Soket etkinleştirmesi servisi hemen geri getirmesin diye soketi de durdur.
+    sockets=()
+    systemctl cat "$unit.socket" >/dev/null 2>&1 && sockets=("$unit.socket")
+    if [[ $2 == stop ]]; then
+      systemctl stop "${sockets[@]}" "$unit.service"
+    else
+      systemctl start "${sockets[@]}" "$unit.service"
+    fi ;;
+  cpus)
+    uid=${PKEXEC_UID:-}
+    [[ $uid =~ ^[0-9]+$ ]] || die "pkexec ile çağrılmalı"
+    if [[ ${2:-} == all ]]; then
+      systemctl set-property --runtime "user-$uid.slice" AllowedCPUs=
+    else
+      [[ ${2:-} =~ ^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$ ]] || die "geçersiz çekirdek listesi"
+      systemctl set-property --runtime "user-$uid.slice" "AllowedCPUs=$2"
+    fi ;;
+  rfkill)
+    [[ ${2:-} == bluetooth && ${3:-} =~ ^(block|unblock)$ ]] || die "rfkill bluetooth block|unblock bekleniyor"
+    rfkill "$3" bluetooth ;;
+  *)
+    die "bilinmeyen komut: ${1:-}" ;;
+esac

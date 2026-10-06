@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kontrol Merkezi · Mod bildirimi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600&amp;family=Rajdhani:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#2b2e36}
+</style>
+</helmet>
+<div style="width: 560px; height: 220px; background: #2b2e36; display: flex; align-items: center; justify-content: center; font-family: 'Exo 2', sans-serif; color: #e8ecf2;">
+  <div style="width: 440px; box-sizing: border-box; padding: 20px 24px; border-radius: 18px; background: rgba(5,6,8,0.92); border: 1px solid #22262e; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #22b8ff; box-shadow: 0 0 14px #22b8ff; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8ecf2" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"></path><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"></path></svg>
+      </div>
+      <div style="flex-grow: 1;">
+        <div style="font-size: 20px; font-weight: 600;">Eğlence modu</div>
+        <div style="font-size: 12px; color: #8a93a3;">İşlemci 44 W · fanlar otomatik</div>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+      <div style="height: 6px; border-radius: 3px; background: #2a2f38;"></div>
+      <div style="height: 6px; border-radius: 3px; background: #22b8ff; box-shadow: 0 0 10px #22b8ff;"></div>
+      <div style="height: 6px; border-radius: 3px; background: #2a2f38;"></div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 11px; color: #8a93a3; text-align: center; margin-top: -10px;">
+      <span>Performans</span><span style="color: #e8ecf2;">Eğlence</span><span>Sessiz</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":560,"height":220}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

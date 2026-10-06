@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>laptop-control-center</vendor>
+  <action id="io.github.laptop-control-center.helper">
+    <description>Apply laptop power-saving settings</description>
+    <description xml:lang="tr">Dizüstü güç tasarrufu ayarlarını uygula</description>
+    <message>Authentication is required to change power-saving settings</message>
+    <message xml:lang="tr">Güç tasarrufu ayarlarını değiştirmek için kimlik doğrulama gerekiyor</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/local/libexec/lcc-helper</annotate>
+  </action>
+</policyconfig>
