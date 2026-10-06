@@ -196,36 +196,40 @@ def cmd_gui(args) -> int:
     return main(args.page)
 
 
-def cmd_bar(args) -> int:
-    """Omarchy bar eklentisi için hızlı, tek satır JSON (etiketler etkin dilde)."""
+BAR_LABELS = (
+    "app.title", "bar.mode", "bar.modes", "bar.power.limit", "bar.fan", "bar.kbd", "bar.open",
+    "bar.shortcut", "bar.live", "bar.history", "bar.temp", "bar.usage", "bar.freq", "bar.avg",
+    "bar.power", "bar.clock", "bar.mem", "bar.disk", "bar.battery", "bar.charging", "bar.left",
+    "bar.full", "cpu.short", "fan.cpu", "fan.gpu", "gpu.short", "gpu.sleeping",
+    "power.title", "power.off", "power.saver", "power.ultra", "power.onbat", "power.onac")
+
+
+def _bar_payload(ctl, sensors) -> dict:
     from . import power
-    from .sensors import Sensors
-    ctl = _controller()
     b = ctl.backend
-    if args.fans == "on":
-        b.start_monitoring()
-    elif args.fans == "off":
-        # Ana pencere açıksa onun fan verisini kesme.
-        if subprocess.run(["pgrep", "-f", "lcc gui"], capture_output=True).returncode != 0:
-            b.stop_monitoring()
-        return 0
-    s = Sensors().sample()
+    s = sensors.sample()
+    g = s.gpu
     mode, fan = b.current()
     out = {
         "mode": mode, "fan": fan,
         "modes": [{"id": m, "label": t("mode." + m)} for m in ctl.caps.modes],
         "fans": [{"id": f, "label": t("fan." + f)} for f in ctl.caps.fan_modes],
-        "pl1": s.cpu_power_limit, "cpuTemp": s.cpu_temp,
+        "pl1": s.cpu_power_limit, "pl2": s.cpu_power_limit2,
+        "cpuTemp": s.cpu_temp, "cpuUsage": s.cpu_usage,
+        "cpuFreq": s.cpu_freq, "cpuFreqAvg": s.cpu_freq_avg,
         "fanSpeeds": b.fan_speeds(),
-        "gpuSleeping": bool(s.gpu and s.gpu.sleeping),
-        "gpuTemp": s.gpu.temp if s.gpu else None,
-        "onBattery": s.on_battery, "battery": s.battery,
+        "gpuName": g.name if g else None,
+        "gpuSleeping": bool(g and g.sleeping),
+        "gpuTemp": g.temp if g else None, "gpuUsage": g.usage if g else None,
+        "gpuPower": g.power if g else None, "gpuPowerLimit": g.power_limit if g else None,
+        "gpuClock": g.clock if g else None,
+        "mem": s.mem_used, "memTotal": s.mem_total_gb,
+        "disk": s.disk_used, "diskTotal": s.disk_total_gb,
+        "onBattery": s.on_battery, "battery": s.battery, "batteryPower": s.battery_power,
+        "batteryHours": hw.battery_hours(s.battery_power) if s.on_battery else None,
         "power": power.status()["level"],
         "keyboard": None,
-        "labels": {k: t(k) for k in (
-            "app.title", "bar.mode", "bar.power.limit", "bar.fan", "bar.kbd", "bar.open",
-            "bar.shortcut", "bar.modes", "cpu.short", "fan.cpu", "fan.gpu", "gpu.short", "gpu.sleeping",
-            "power.title", "power.off", "power.saver", "power.ultra")},
+        "labels": {k: t(k) for k in BAR_LABELS},
     }
     if ctl.caps.keyboard:
         try:
@@ -234,7 +238,46 @@ def cmd_bar(args) -> int:
                                "color": k.color}
         except Exception:
             pass
-    print(json.dumps(out, ensure_ascii=False))
+    return out
+
+
+def _gui_running() -> bool:
+    return subprocess.run(["pgrep", "-f", "lcc gui"], capture_output=True).returncode == 0
+
+
+def cmd_bar(args) -> int:
+    """Omarchy bar eklentisi için tek satır JSON (etiketler etkin dilde).
+
+    --watch: panel açıkken sürekli çalışır, her aralıkta bir satır yazar; fan ölçümünü
+    açar ve çıkarken (ana pencere açık değilse) kapatır."""
+    import signal
+    from .sensors import Sensors
+    ctl = _controller()
+    b = ctl.backend
+    if args.fans == "on":
+        b.start_monitoring()
+        return 0
+    if args.fans == "off":
+        if not _gui_running():
+            b.stop_monitoring()
+        return 0
+    sensors = Sensors()
+    if not args.watch:
+        print(json.dumps(_bar_payload(ctl, sensors), ensure_ascii=False))
+        return 0
+
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    b.start_monitoring()
+    sensors.sample()            # kullanım yüzdesi iki ölçüm arasından hesaplanır
+    try:
+        while True:
+            time.sleep(args.interval)
+            print(json.dumps(_bar_payload(ctl, sensors), ensure_ascii=False), flush=True)
+    except (KeyboardInterrupt, BrokenPipeError):
+        pass
+    finally:
+        if not _gui_running():
+            b.stop_monitoring()
     return 0
 
 
@@ -310,6 +353,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("bar", help="bar eklentisi için JSON / JSON for the bar plugin")
     s.add_argument("--fans", choices=["on", "off"], help="fan ölçümünü aç/kapat / toggle fan sampling")
+    s.add_argument("--watch", action="store_true", help="sürekli yaz / stream continuously")
+    s.add_argument("--interval", type=float, default=1.0)
     s.set_defaults(func=cmd_bar)
 
     s = sub.add_parser("power", help="pil tasarrufu / power saving")

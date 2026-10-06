@@ -9,7 +9,6 @@ masaüstü anahtarları).
 from __future__ import annotations
 
 import logging
-import os
 import time
 import traceback
 
@@ -24,21 +23,6 @@ log = logging.getLogger("lcc.gui")
 
 LIVE_MS = 1000
 DESK_EVERY = 2      # her kaç canlı ölçümde bir masaüstü durumunu oku
-
-
-def _battery_hours(on_battery: bool, watts) -> float | None:
-    if not on_battery or not watts:
-        return None
-    for bat in hw.batteries():
-        try:
-            if os.path.exists(bat + "/energy_now"):
-                wh = int(open(bat + "/energy_now").read()) / 1e6
-            else:
-                wh = int(open(bat + "/charge_now").read()) * int(open(bat + "/voltage_now").read()) / 1e12
-            return wh / watts
-        except (OSError, ValueError):
-            continue
-    return None
 
 
 class Worker(QObject):
@@ -120,7 +104,7 @@ class Worker(QObject):
             "disk": s.disk_used, "diskTotal": s.disk_total_gb,
             "onBattery": s.on_battery, "battery": s.battery, "batteryPower": s.battery_power,
             "fans": b.fan_speeds(),
-            "batteryHours": _battery_hours(s.on_battery, s.battery_power),
+            "batteryHours": hw.battery_hours(s.battery_power) if s.on_battery else None,
             "mode": mode, "fan": fan,
             "time": time.time(),
         }

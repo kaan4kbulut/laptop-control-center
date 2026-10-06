@@ -146,3 +146,19 @@ def on_battery() -> bool:
 def batteries() -> list[str]:
     return [p for p in sorted(glob.glob("/sys/class/power_supply/*"))
             if read(p + "/type") == "Battery" and read(p + "/scope", "System") != "Device"]
+
+
+def battery_hours(watts) -> float | None:
+    """Pildeki enerji / anlık tüketim. Bilinmiyorsa None."""
+    if not watts:
+        return None
+    for bat in batteries():
+        try:
+            if os.path.exists(bat + "/energy_now"):
+                wh = int(read(bat + "/energy_now")) / 1e6
+            else:
+                wh = int(read(bat + "/charge_now")) * int(read(bat + "/voltage_now")) / 1e12
+            return wh / watts
+        except (TypeError, ValueError):
+            continue
+    return None

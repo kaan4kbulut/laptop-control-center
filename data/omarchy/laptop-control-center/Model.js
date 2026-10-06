@@ -37,6 +37,13 @@ function num(v, digits) {
   return Number(v).toFixed(digits || 0)
 }
 
+// 2.5 -> "2 sa 30 dk" (english: "2 h 30 min")
+function duration(hours, english) {
+  if (!hours || hours <= 0 || hours > 48) return "—"
+  var m = Math.round(hours * 60)
+  return Math.floor(m / 60) + (english ? " h " : " sa ") + (m % 60) + (english ? " min" : " dk")
+}
+
 if (typeof module !== "undefined") {
-  module.exports = { modeIcon: modeIcon, parse: parse, labelOf: labelOf, cycleMode: cycleMode, num: num }
+  module.exports = { modeIcon: modeIcon, parse: parse, labelOf: labelOf, cycleMode: cycleMode, num: num, duration: duration }
 }
