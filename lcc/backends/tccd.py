@@ -34,14 +34,24 @@ ODM = {"performance": "performance", "balanced": "entertainment",
        "quiet": "quiet", "powersave": "power_saving"}
 
 CPU = {
-    "performance": {"energyPerformancePreference": "balance_performance", "noTurbo": False},
+    "performance": {"energyPerformancePreference": "performance", "noTurbo": False},
     "balanced": {"energyPerformancePreference": "balance_performance", "noTurbo": False},
     "quiet": {"energyPerformancePreference": "balance_power", "noTurbo": False},
     "powersave": {"energyPerformancePreference": "power", "noTurbo": True},
 }
 
-# tccd'nin hazır fan profilleri; "max" ve "custom" kendi eğrimizle "Custom" olur.
-FAN_PRESET = {"auto": "Balanced", "silent": "Silent"}
+# tccd'nin hazır fan profilleri; "auto", "max" ve "custom" kendi eğrimizle "Custom" olur.
+FAN_PRESET = {"silent": "Silent"}
+
+# "Otomatik" fan her modda o modun karakterinde çalışır: Performans daha erken ve
+# güçlü soğutur, Sessiz geç devreye girer. (sıcaklık °C, hız %) noktaları.
+AUTO_CURVE = {
+    "performance": [[20, 15], [40, 28], [50, 38], [60, 50], [70, 65], [80, 85], [90, 100], [100, 100]],
+    # tccd'nin "Balanced" eğrisiyle aynı
+    "balanced": [[20, 12], [30, 14], [40, 22], [50, 35], [60, 44], [70, 56], [80, 79], [90, 85], [100, 90]],
+    "quiet": [[20, 0], [40, 10], [50, 18], [60, 28], [70, 42], [80, 62], [90, 82], [100, 100]],
+}
+AUTO_CURVE["powersave"] = AUTO_CURVE["quiet"]
 
 
 def _call(method, sig=None, *args):
@@ -173,8 +183,9 @@ class TccdBackend(Backend):
                 if fan in FAN_PRESET:
                     f["fanProfile"] = FAN_PRESET[fan]
                 else:
+                    table = expand_curve(AUTO_CURVE[mode]) if fan == "auto" else tables[fan]
                     f["fanProfile"] = "Custom"
-                    f["customFanCurve"] = {"tableCPU": tables[fan], "tableGPU": tables[fan]}
+                    f["customFanCurve"] = {"tableCPU": table, "tableGPU": table}
                 out.append(p)
         return out
 
