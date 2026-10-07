@@ -414,7 +414,15 @@ class PowerManager:
             set_dpms(True)
 
     def _cap_brightness(self, cap: int | None) -> None:
-        cur = desktop.brightness()
-        if cap is not None and cur is not None and cur > cap:
-            desktop.set_brightness(cap)
+        """Kademeler arasında geçerken parlaklık yeni sınıra uyar: Ultra'dan Tasarruf'a
+        geçince yükselir de. Kullanıcı sınırdan sonra elle değiştirdiyse yalnızca kısılır;
+        tasarruftan önceki parlaklığın üstüne hiç çıkılmaz."""
+        cur, prev = desktop.brightness(), self.saved.get("brightness")
+        if cap is not None and cur is not None:
+            if self.cap is not None and abs(cur - self.cap) <= 1 and prev is not None:
+                target = min(cap, prev)
+            else:
+                target = min(cur, cap)
+            if abs(target - cur) > 1:
+                desktop.set_brightness(target)
         self.cap = cap

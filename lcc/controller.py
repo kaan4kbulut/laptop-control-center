@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from . import config
+from . import config, profiles
 from . import hardware as hw
 from .backends import detect
 from .backends.base import FAN_MODES, Backend, Unsupported
@@ -34,6 +34,7 @@ class Controller:
         _, fan = self.desired(src)
         self.backend.apply(mode, fan)
         config.update(**{src: {"mode": mode}})
+        profiles.sync(src, mode)
         return mode, fan
 
     def next_mode(self) -> tuple[str, str]:

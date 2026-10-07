@@ -11,17 +11,12 @@ from gi.repository import GLib
 
 from .. import dbus
 from ..hardware import read, read_int
+from ..profiles import PPD_NAMES
 from .base import Backend, Capabilities, KeyboardCaps, KeyboardState, Unsupported
 
 UPOWER = "org.freedesktop.UPower"
 KBD_PATH = "/org/freedesktop/UPower/KbdBacklight"
 KBD_IFACE = "org.freedesktop.UPower.KbdBacklight"
-
-# Yeni sürümler UPower adını, eskiler net.hadess adını kullanır.
-PPD_NAMES = [
-    ("org.freedesktop.UPower.PowerProfiles", "/org/freedesktop/UPower/PowerProfiles"),
-    ("net.hadess.PowerProfiles", "/net/hadess/PowerProfiles"),
-]
 
 TO_PPD = {"performance": "performance", "balanced": "balanced", "powersave": "power-saver"}
 FROM_PPD = {v: k for k, v in TO_PPD.items()}

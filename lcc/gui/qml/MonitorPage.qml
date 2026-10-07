@@ -32,8 +32,8 @@ Item {
         anchors.right: parent.right; anchors.rightMargin: 36
         y: 84; spacing: 10
         Repeater {
-            // Pil tasarrufu yalnızca pilde kendiliğinden gelir; etkinse o da görünür.
-            model: (page.inf.modes || []).filter(m => m !== "powersave" || page.lv.mode === m)
+            // Pil Tasarrufu pildeyken (ya da etkinse) görünür; başka moda geçince kaybolmaz.
+            model: (page.inf.modes || []).filter(m => m !== "powersave" || page.lv.onBattery || page.lv.mode === m)
             delegate: Item {
                 id: mb
                 required property string modelData

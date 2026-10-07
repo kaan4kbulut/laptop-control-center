@@ -105,7 +105,10 @@ def brightness() -> int | None:
 
 def set_brightness(percent: int) -> None:
     p = max(1, min(100, int(percent)))
-    _run("brightnessctl", "-q", "set", f"{p}%")
+    d = _backlight()
+    # Okunan aygıtın kendisi ayarlansın (brightnessctl'nin varsayılanı başka olabilir).
+    dev = ("-d", os.path.basename(d)) if d else ()
+    _run("brightnessctl", "-q", *dev, "set", f"{p}%")
 
 
 # --- gece ışığı ------------------------------------------------------------

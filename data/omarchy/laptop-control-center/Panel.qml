@@ -220,7 +220,7 @@ Panel {
             Row {
               id: modeRow
               width: parent.width; spacing: 8
-              readonly property var items: root.info ? root.info.modes.filter(function (m) { return m.id !== "powersave" || m.id === root.mode }) : []
+              readonly property var items: root.info ? root.info.modes.filter(function (m) { return m.id !== "powersave" || root.info.onBattery || m.id === root.mode }) : []
               Repeater {
                 model: modeRow.items
                 Item {

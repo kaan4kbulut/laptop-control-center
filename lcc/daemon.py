@@ -15,7 +15,7 @@ import signal
 
 from gi.repository import Gio, GLib
 
-from . import battery, camera, config, dbus, notify, power
+from . import battery, camera, config, dbus, notify, power, profiles
 from . import hardware as hw
 from .backends.base import SetupRequired, Unsupported
 from .controller import Controller
@@ -39,6 +39,7 @@ class Daemon:
             if self.ctl.reapply():
                 log.info("reapplied %s for %s", self.ctl.desired(), self.ctl.source())
                 notify.bar_refresh()
+            profiles.sync(self.ctl.source(), self.ctl.desired()[0])
         except (SetupRequired, Unsupported) as e:
             log.warning("cannot apply: %s", e)
         except GLib.Error as e:
@@ -58,6 +59,28 @@ class Daemon:
             log.info("power source changed: on_battery=%s", changed["OnBattery"])
             self.schedule_checks()
             self._power(lambda: self.power.on_power_source_changed(bool(changed["OnBattery"])))
+
+    def _on_profile(self, _conn, _sender, _path, _iface, _signal, params):
+        """Sistemden (Omarchy menüsü/paneli, powerprofilesctl) profil değişince modu ona uydur."""
+        _, changed, _ = params.unpack()
+        profile = changed.get("ActiveProfile")
+        if not profile:
+            return
+        src = self.ctl.source()
+        cur, _ = self.ctl.desired(src)
+        if profiles.TO_PPD.get(cur) == profile:
+            return
+        mode = profiles.mode_for(profile, self.ctl.caps.modes, src == "battery")
+        if not mode:
+            return
+        log.info("system power profile %s -> mode %s", profile, mode)
+        try:
+            self.ctl.set_mode(mode)
+        except (SetupRequired, Unsupported) as e:
+            log.warning("cannot apply: %s", e)
+        except GLib.Error as e:
+            log.warning("backend error: %s", e.message)
+        notify.bar_refresh()
 
     # --- pil tasarrufu ----------------------------------------------------------
     def _power(self, fn) -> None:
@@ -133,6 +156,14 @@ class Daemon:
         dbus.bus("system").signal_subscribe(
             "org.freedesktop.UPower", "org.freedesktop.DBus.Properties", "PropertiesChanged",
             "/org/freedesktop/UPower", None, Gio.DBusSignalFlags.NONE, self._on_upower)
+        d = profiles.ppd()
+        if d:
+            dbus.bus("system").signal_subscribe(
+                d[0], "org.freedesktop.DBus.Properties", "PropertiesChanged",
+                d[1], None, Gio.DBusSignalFlags.NONE, self._on_profile)
+            # Omarchy'nin iki güç kaynağı için hatırladığı profil de kontrol merkezininkine uysun.
+            for src in ("ac", "battery"):
+                profiles.remember(src, self.ctl.desired(src)[0])
         for sig in (signal.SIGINT, signal.SIGTERM):
             GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, sig, self._quit)
         log.info("backend: %s", self.ctl.backend.name)
