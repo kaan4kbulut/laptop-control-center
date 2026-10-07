@@ -2,6 +2,7 @@
 # laptop-control-center root yardımcısı. pkexec ile çağrılır; polkit kuralı etkin
 # oturumdaki kullanıcıya parolasız izin verir. Yalnızca aşağıdaki dar işleri yapar:
 #   aspm <default|performance|powersave|powersupersave>
+#                                    (tasarrufta kablosuz ethernet kartının L1'i de açılır)
 #   wifi-powersave <on|off>
 #   service <stop|start> <birim>     (yalnızca ALLOWED listesindekiler)
 #   cpus <liste|all>                 (çağıran kullanıcının oturum dilimi)
@@ -12,7 +13,7 @@
 set -euo pipefail
 export PATH=/usr/sbin:/usr/bin
 
-VERSION=2
+VERSION=3
 TCCD=/opt/tuxedo-control-center/resources/dist/tuxedo-control-center/data/service/tccd
 ALLOWED=(nvidia-powerd avahi-daemon cups ollama)
 
@@ -23,7 +24,20 @@ case "${1:-}" in
     echo "$VERSION" ;;
   aspm)
     [[ ${2:-} =~ ^(default|performance|powersave|powersupersave)$ ]] || die "geçersiz ASPM politikası"
-    echo "$2" > /sys/module/pcie_aspm/parameters/policy ;;
+    echo "$2" > /sys/module/pcie_aspm/parameters/policy
+    # r8169 gibi sürücüler ASPM'i kendileri kapatır; kablo takılı değilken kart boşa
+    # PCIe bağlantısını açık tutup işlemcinin derin uykuya inmesini engeller.
+    for net in /sys/class/net/*; do
+      dev=$(readlink -f "$net/device" 2>/dev/null) || continue
+      [[ $(cat "$dev/class" 2>/dev/null) == 0x0200* && -e $dev/link/l1_aspm ]] || continue
+      if [[ $2 == power*save && $(cat "$net/carrier" 2>/dev/null || echo 0) != 1 ]]; then
+        echo 1 > "$dev/link/l1_aspm" || true
+        echo auto > "$dev/power/control"
+      elif [[ $2 != power*save ]]; then
+        echo 0 > "$dev/link/l1_aspm" || true
+        echo on > "$dev/power/control"
+      fi
+    done ;;
   wifi-powersave)
     [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
     for dev in $(iw dev | awk '$1 == "Interface" {print $2}'); do

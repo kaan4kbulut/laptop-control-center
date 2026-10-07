@@ -21,7 +21,15 @@ DEFAULTS: dict = {
         "auto": True,            # pilde kendiliğinden "saver"
         "saver": ["refresh", "brightness", "wifi", "aspm", "services"],
         "ultra": ["refresh", "brightness", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores"],
+        # Pilde kapak kapanınca (harici ekran yoksa) kendiliğinden "headless".
+        "headless_on_lid": True,
+        "headless": ["refresh", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores",
+                     "dpms", "freeze"],
         "brightness_cap": {"saver": 50, "ultra": 30},
+        # Ekransızda dondurulan uygulamalar (scope adında geçen); terminaller dondurulmaz.
+        "freeze_apps": ["chrome", "chromium", "brave", "firefox", "zen", "librewolf",
+                        "telegram", "signal", "discord", "slack", "spotify", "obsidian",
+                        "typora", "libreoffice", "steam"],
     },
 }
 
@@ -29,6 +37,11 @@ DEFAULTS: dict = {
 def path() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
     return Path(base) / "laptop-control-center" / "config.json"
+
+
+def state_dir() -> Path:
+    base = os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state")
+    return Path(base) / "laptop-control-center"
 
 
 def load() -> dict:

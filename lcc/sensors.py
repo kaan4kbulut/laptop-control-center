@@ -155,12 +155,7 @@ class Sensors:
             return None, None
         b = bats[0]
         cap = read_int(b + "/capacity")
-        pw = read_int(b + "/power_now")
-        if pw is None:
-            c, v = read_int(b + "/current_now"), read_int(b + "/voltage_now")
-            pw = c * v // 1_000_000 if c is not None and v is not None else None
-        return (float(cap) if cap is not None else None,
-                pw / 1e6 if pw is not None else None)
+        return float(cap) if cap is not None else None, hw.battery_watts()
 
     # --- fanlar ------------------------------------------------------------
     @staticmethod

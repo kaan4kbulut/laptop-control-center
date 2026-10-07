@@ -10,8 +10,9 @@ Item {
     readonly property var pw: win.desk.power || ({})
     readonly property var conf: pw.settings || ({})
     readonly property var avail: pw.available || ({})
-    readonly property var features: ["refresh", "brightness", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores"]
-    readonly property var levels: ["saver", "ultra"]
+    readonly property var features: ["refresh", "brightness", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores", "dpms", "freeze"]
+    readonly property var levels: ["saver", "ultra", "headless"]
+    readonly property var capLevels: ["saver", "ultra"]
 
     function hours(h) {
         if (!h || h <= 0 || h > 48) return "–"
@@ -59,13 +60,19 @@ Item {
         }
     }
 
+    Text {
+        x: 230; y: 236
+        visible: page.conf.headless_on_lid !== false
+        text: page.tr["power.headless.hint"]; font.family: Theme.font; font.pixelSize: 12; color: Theme.dim
+    }
+
     // --- özellik tablosu ----------------------------------------------------------
     Repeater {
         model: page.levels
         Text {
             required property string modelData
             required property int index
-            x: 640 + index * 100 - width / 2; y: 262
+            x: 630 + index * 80 - width / 2; y: 262
             text: page.tr["power." + modelData]
             font.family: Theme.font; font.pixelSize: 13; font.weight: Font.DemiBold; font.letterSpacing: 1
             color: page.pw.level === modelData ? Theme.purple : Theme.soft
@@ -80,19 +87,19 @@ Item {
             required property int index
             readonly property bool ok: page.avail[modelData] === true
             readonly property bool active: (page.pw.active || []).indexOf(modelData) >= 0
-            x: 230; y: 296 + index * 48; width: 560; height: 46
+            x: 230; y: 296 + index * 41; width: 560; height: 40
             opacity: ok ? 1 : 0.4
             RectangularShadow {
                 anchors.fill: act; radius: 4; blur: 8; color: Theme.purple; visible: row.active
             }
             Rectangle {
                 id: act
-                x: 0; y: 13; width: 8; height: 8; radius: 4
+                x: 0; y: 10; width: 8; height: 8; radius: 4
                 color: row.active ? Theme.purple : "transparent"
                 border.width: 1; border.color: row.active ? Theme.purple : "#3a404b"
             }
             Column {
-                x: 22; y: 4
+                x: 22; y: 1
                 Text {
                     text: page.tr["power.f." + row.modelData]
                     font.family: Theme.font; font.pixelSize: 15; color: Theme.text
@@ -109,7 +116,7 @@ Item {
                     required property string modelData
                     required property int index
                     readonly property bool on: page.has(modelData, row.modelData)
-                    x: 410 + index * 100 - 22; y: 1; width: 44; height: 44
+                    x: 400 + index * 80 - 20; y: 0; width: 40; height: 40
                     Accessible.role: Accessible.CheckBox
                     Accessible.name: page.tr["power." + modelData] + " " + page.tr["power.f." + row.modelData]
                     RectangularShadow { anchors.fill: box; radius: 8; blur: 10; color: Theme.purple; visible: cell.on && row.ok }
@@ -146,7 +153,7 @@ Item {
         Section { title: page.tr["power.cap"]; icon: "M20 12a8 8 0 1 1-16 0a8 8 0 1 1 16 0M12 4a8 8 0 0 1 0 16z" }
         Item { width: 1; height: 22 }
         Repeater {
-            model: page.levels
+            model: page.capLevels
             Column {
                 id: capCol
                 required property string modelData
@@ -183,6 +190,34 @@ Item {
             Column {
                 Readout { value: page.hours(page.lv.batteryHours); unit: ""; size: 40 }
                 Text { text: page.tr["power.left"]; font.family: Theme.font; font.pixelSize: 12; color: Theme.dim }
+            }
+        }
+        // Öğrenilmiş mod farklarıyla, şu anki yükte öbür modlarda kalan süre.
+        Column {
+            id: byMode
+            readonly property var est: page.lv.batteryModes || ({})
+            readonly property var shown: (win.info.modes || []).filter(m => est[m] !== undefined)
+            visible: page.lv.onBattery && shown.length > 1
+            topPadding: 18; spacing: 4
+            Text { text: page.tr["power.bymode"]; font.family: Theme.font; font.pixelSize: 12; color: Theme.dim; bottomPadding: 2 }
+            Repeater {
+                model: byMode.shown
+                Row {
+                    required property string modelData
+                    readonly property bool current: page.lv.mode === modelData
+                    spacing: 8
+                    Text {
+                        id: modeName; width: 130
+                        text: page.tr["mode." + modelData]
+                        font.family: Theme.font; font.pixelSize: 14; color: parent.current ? Theme.purple : Theme.text
+                    }
+                    Text {
+                        anchors.baseline: modeName.baseline
+                        text: page.hours(byMode.est[modelData])
+                        font.family: Theme.digits; font.pixelSize: 16; font.weight: Font.DemiBold
+                        color: parent.current ? Theme.purple : Theme.text
+                    }
+                }
             }
         }
         Text {

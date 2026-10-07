@@ -1,12 +1,16 @@
 """Pil tasarrufu: pilde kendiliğinden "Tasarruf", istenirse "Ultra"; prize takılınca geri alınır.
 
-Kademe (level): off | saver | ultra. Her kademenin açacağı özellikler config.json'daki
+Kademe (level): off | saver | ultra | headless. Her kademenin açacağı özellikler config.json'daki
 `power_saving` bölümünde, kullanıcı arayüzden değiştirebilir. Uygulayan tek yer
 servis (lcc daemon); arayüz ve komut satırı yalnızca istek dosyasını yazar.
 
 Her özellik açılmadan önceki durumu durum dosyasına kaydeder ve kapanınca oraya döner:
 önceden kapalı olan Bluetooth açılmaz, önceden çalışmayan servis başlatılmaz, kullanıcı
 parlaklığı sonradan elle değiştirdiyse eski değere zorlanmaz.
+
+"Ekransız" (headless) kademe elle seçilmez: pildeyken kapak kapanınca (harici ekran
+yoksa) kendiliğinden açılır, kapak açılınca ya da fiş takılınca kapanır. Ekranı kapatır,
+tarayıcı gibi uygulamaları dondurur; bilgisayar kapak kapalı arkada iş yaparken içindir.
 
 Root gereken adımlar lcc-helper ile yapılır (lcc/helper.py).
 """
@@ -26,22 +30,19 @@ from . import config, desktop, helper
 
 log = logging.getLogger("lcc.power")
 
-LEVELS = ("off", "saver", "ultra")
-FEATURES = ("refresh", "brightness", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores")
+LEVELS = ("off", "saver", "ultra", "headless")
+FEATURES = ("refresh", "brightness", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores",
+            "dpms", "freeze")
 ROOT_FEATURES = {"wifi", "aspm", "services", "bluetooth", "ecores"}
 # Yeniden başlatınca kendiliğinden eski haline dönenler (durumları açılışta unutulur).
-BOOT_RESET = ROOT_FEATURES
+BOOT_RESET = ROOT_FEATURES | {"dpms", "freeze"}
+MANUAL = ("off", "saver", "ultra")     # elle istenebilenler
 SERVICES = ("nvidia-powerd", "avahi-daemon", "cups", "ollama")
 SAVER_REFRESH = 60
 
 
-def _state_dir() -> Path:
-    base = os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state")
-    return Path(base) / "laptop-control-center"
-
-
-STATE_FILE = _state_dir() / "power.json"
-REQUEST_FILE = _state_dir() / "power-request"
+STATE_FILE = config.state_dir() / "power.json"
+REQUEST_FILE = config.state_dir() / "power-request"
 
 
 def _run(*cmd: str, timeout: float = 10) -> str | None:
@@ -74,7 +75,7 @@ def settings() -> dict:
 
 def request(level: str) -> None:
     """Arayüz/komut satırı: 'auto' (pil durumuna göre) veya off/saver/ultra."""
-    if level not in LEVELS + ("auto",):
+    if level not in MANUAL + ("auto",):
         raise ValueError(level)
     REQUEST_FILE.parent.mkdir(parents=True, exist_ok=True)
     REQUEST_FILE.write_text(level + "\n")
@@ -85,7 +86,7 @@ def requested() -> str:
         v = REQUEST_FILE.read_text().strip()
     except OSError:
         return "auto"
-    return v if v in LEVELS else "auto"
+    return v if v in MANUAL else "auto"
 
 
 def status() -> dict:
@@ -129,6 +130,8 @@ def available(backend=None) -> dict[str, bool]:
         "bluetooth": root and bool(_rfkill_bluetooth()),
         "kbd": kbd,
         "ecores": root and ecores() is not None,
+        "dpms": shutil.which("hyprctl") is not None,
+        "freeze": shutil.which("systemctl") is not None,
     }
 
 
@@ -170,6 +173,56 @@ def _active_services() -> list[str]:
         if r.returncode == 0:
             out.append(s)
     return out
+
+
+# --- ekran ve uygulamalar (ekransız kademe) -----------------------------------------
+def _monitors() -> list[dict]:
+    out = _run("hyprctl", "monitors", "-j")
+    return json.loads(out) if out else []
+
+
+def set_dpms(on: bool) -> None:
+    action = "on" if on else "off"
+    for m in _monitors():
+        _run("hyprctl", "dispatch", f'hl.dsp.dpms({{ action = "{action}", monitor = "{m["name"]}" }})')
+
+
+def lid_closed() -> bool:
+    for f in glob.glob("/proc/acpi/button/lid/*/state"):
+        try:
+            if "closed" in Path(f).read_text():
+                return True
+        except OSError:
+            pass
+    return False
+
+
+def external_display() -> bool:
+    internal = (_run("omarchy-hyprland-monitor-laptop") or "").strip()
+    return any(m["name"] != internal and not m["name"].startswith("eDP") for m in _monitors())
+
+
+def lid_headless(on_battery: bool) -> bool:
+    """Pilde, kapak kapalı ve harici ekran yokken ekransız kademe."""
+    return (on_battery and settings().get("headless_on_lid", True) and lid_closed()
+            and not external_display())
+
+
+def _app_scopes(names: list[str]) -> list[str]:
+    """Adı listedeki bir uygulamayı içeren kullanıcı scope'ları (ör. app-...Chrome-1234.scope)."""
+    out = _run("systemctl", "--user", "list-units", "--type=scope", "--state=running",
+               "--no-legend", "--plain") or ""
+    units = [line.split()[0] for line in out.splitlines() if line.strip()]
+    keys = [n.lower() for n in names]
+    return [u for u in units if u.startswith("app-") and any(k in u.lower() for k in keys)]
+
+
+def _freeze(units: list[str], on: bool) -> list[str]:
+    done = []
+    for u in units:
+        if _run("systemctl", "--user", "freeze" if on else "thaw", u) is not None:
+            done.append(u)
+    return done
 
 
 # --- iç ekran tazeleme hızı (eski power-watch) -------------------------------------
@@ -237,6 +290,8 @@ class PowerManager:
         os.replace(tmp, STATE_FILE)
 
     def desired_level(self, on_battery: bool) -> str:
+        if lid_headless(on_battery):
+            return "headless"
         req = requested()
         if req in LEVELS:
             return req
@@ -273,6 +328,7 @@ class PowerManager:
 
     def ensure_refresh(self) -> None:
         set_refresh("refresh" in self.saved)
+
 
     # --- tek tek özellikler ------------------------------------------------------
     def _apply(self, f: str, cap: int | None) -> None:
@@ -311,6 +367,12 @@ class PowerManager:
         elif f == "ecores":
             prev = True
             ok = _helper("cpus", ecores() or "all")
+        elif f == "freeze":
+            prev = _freeze(_app_scopes(settings().get("freeze_apps", [])), True)
+            log.info("frozen: %s", prev)
+        elif f == "dpms":
+            prev = True
+            set_dpms(False)
         if ok:
             self.saved[f] = prev
         else:
@@ -346,6 +408,10 @@ class PowerManager:
                 log.warning("kbd restore: %s", e)
         elif f == "ecores":
             _helper("cpus", "all")
+        elif f == "freeze":
+            _freeze(prev or [], False)
+        elif f == "dpms":
+            set_dpms(True)
 
     def _cap_brightness(self, cap: int | None) -> None:
         cur = desktop.brightness()

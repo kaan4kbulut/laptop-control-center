@@ -148,17 +148,31 @@ def batteries() -> list[str]:
             if read(p + "/type") == "Battery" and read(p + "/scope", "System") != "Device"]
 
 
-def battery_hours(watts) -> float | None:
-    """Pildeki enerji / anlık tüketim. Bilinmiyorsa None."""
-    if not watts:
-        return None
+def battery_watts() -> float | None:
+    """Pilin anlık gücü (W); power_now yoksa akım × gerilim."""
+    for bat in batteries():
+        pw = read_int(bat + "/power_now")
+        if pw is None:
+            c, v = read_int(bat + "/current_now"), read_int(bat + "/voltage_now")
+            pw = c * v // 1_000_000 if c is not None and v is not None else None
+        if pw is not None:
+            return abs(pw) / 1e6
+    return None
+
+
+def battery_energy() -> float | None:
+    """Pilde kalan enerji (Wh)."""
     for bat in batteries():
         try:
             if os.path.exists(bat + "/energy_now"):
-                wh = int(read(bat + "/energy_now")) / 1e6
-            else:
-                wh = int(read(bat + "/charge_now")) * int(read(bat + "/voltage_now")) / 1e12
-            return wh / watts
+                return int(read(bat + "/energy_now")) / 1e6
+            return int(read(bat + "/charge_now")) * int(read(bat + "/voltage_now")) / 1e12
         except (TypeError, ValueError):
             continue
     return None
+
+
+def battery_hours(watts) -> float | None:
+    """Pildeki enerji / anlık tüketim. Bilinmiyorsa None."""
+    wh = battery_energy()
+    return wh / watts if watts and wh is not None else None

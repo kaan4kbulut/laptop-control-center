@@ -1,5 +1,6 @@
 """Kullanıcı servisi: girişte ve fiş takılıp çekilince seçili modu yeniden uygular,
-pil tasarrufu kademesini (lcc/power.py) yönetir.
+pil tasarrufu kademesini (lcc/power.py) yönetir ve kalan pil süresini tahmin eder
+(lcc/battery.py).
 
 tccd güç kaynağı değişince geçici profili sıfırlar ve kendi ayarındaki profile döner;
 bu değişikliği birkaç saniye içinde yapar. Bu yüzden değişiklikten sonra birkaç kez
@@ -14,7 +15,7 @@ import signal
 
 from gi.repository import Gio, GLib
 
-from . import camera, config, dbus, notify, power
+from . import battery, camera, config, dbus, notify, power
 from . import hardware as hw
 from .backends.base import SetupRequired, Unsupported
 from .controller import Controller
@@ -29,6 +30,7 @@ class Daemon:
         self.loop = GLib.MainLoop()
         self._gen = 0
         self.power = power.PowerManager(self.ctl.backend)
+        self.battery = battery.Estimator(self.ctl.backend, lambda: self.power.level)
         self._eval_pending = 0
         self._monitors = []
 
@@ -77,6 +79,16 @@ class Daemon:
             self._power(lambda: self.power.evaluate(hw.on_battery()))
             return False
         self._eval_pending = GLib.timeout_add(300, run)
+
+    def _lid_check(self) -> bool:
+        """Kapak açılıp kapanınca ekransız kademeyi değerlendir (ACPI olayı kullanıcıya
+        gelmediği için durum dosyası yoklanır; okuması ucuz)."""
+        closed = power.lid_closed()
+        if closed != self._lid:
+            self._lid = closed
+            log.info("lid %s", "closed" if closed else "open")
+            self._power(lambda: self.power.evaluate(hw.on_battery()))
+        return True
 
     def _watch(self, path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -131,6 +143,10 @@ class Daemon:
         self._apply_camera()
         self._check()
         self.schedule_checks()
+        self.battery.tick()
+        GLib.timeout_add_seconds(battery.INTERVAL, self.battery.tick)
+        self._lid = power.lid_closed()
+        GLib.timeout_add_seconds(2, self._lid_check)
         self.loop.run()
 
     def _apply_camera(self) -> None:
@@ -140,6 +156,7 @@ class Daemon:
             camera.set_enabled(False)
 
     def _quit(self) -> bool:
+        self.battery.save()
         self.loop.quit()
         return False
 

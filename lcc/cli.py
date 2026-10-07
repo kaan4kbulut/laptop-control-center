@@ -20,6 +20,11 @@ def _fmt(v, unit="", nd=0):
     return "—" if v is None else f"{v:.{nd}f}{unit}"
 
 
+def _duration(h: float) -> str:
+    m = round(h * 60)
+    return f"{m // 60} {t('unit.h')} {m % 60} {t('unit.min')}"
+
+
 def _controller():
     from .controller import Controller
     return Controller()
@@ -78,8 +83,12 @@ def cmd_status(args) -> int:
         (t("disk"), f"{snap.disk_used:.0f} % · {snap.disk_total_gb:.0f} GB"),
     ]
     if snap.battery is not None:
+        from . import battery
+        est = battery.estimate()
+        h = est["hours"] if est else battery.hours(snap.battery_power)
         rows.append((t("power.battery"),
-                     f"{snap.battery:.0f} % · {_fmt(snap.battery_power, ' W', 1)}"))
+                     f"{snap.battery:.0f} % · {_fmt(est['watts'] if est else snap.battery_power, ' W', 1)}"
+                     + (f" · {_duration(h)} {t('bar.left')}" if h else "")))
     if kbd:
         rows.append((t("kbd"), f"{kbd.brightness} · {kbd.color}"))
     if end is not None:
@@ -201,11 +210,12 @@ BAR_LABELS = (
     "bar.shortcut", "bar.live", "bar.history", "bar.temp", "bar.usage", "bar.freq", "bar.avg",
     "bar.power", "bar.clock", "bar.mem", "bar.disk", "bar.battery", "bar.charging", "bar.left",
     "bar.full", "bar.boost", "cpu.short", "fan.cpu", "fan.gpu", "gpu.short", "gpu.sleeping",
-    "power.title", "power.off", "power.saver", "power.ultra", "power.onbat", "power.onac")
+    "power.title", "power.off", "power.saver", "power.ultra", "power.headless", "power.onbat",
+    "power.onac")
 
 
 def _bar_payload(ctl, sensors) -> dict:
-    from . import power
+    from . import battery, power
     b = ctl.backend
     s = sensors.sample()
     g = s.gpu
@@ -227,7 +237,7 @@ def _bar_payload(ctl, sensors) -> dict:
         "mem": s.mem_used, "memTotal": s.mem_total_gb,
         "disk": s.disk_used, "diskTotal": s.disk_total_gb,
         "onBattery": s.on_battery, "battery": s.battery, "batteryPower": s.battery_power,
-        "batteryHours": hw.battery_hours(s.battery_power) if s.on_battery else None,
+        "batteryHours": battery.hours(s.battery_power),
         "power": power.status()["level"],
         "keyboard": None,
         "labels": {k: t(k) for k in BAR_LABELS},

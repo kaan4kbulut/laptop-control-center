@@ -14,7 +14,7 @@ import traceback
 
 from PySide6.QtCore import Property, QObject, QThread, QTimer, Signal, Slot
 
-from .. import camera, config, desktop, notify, power
+from .. import battery, camera, config, desktop, notify, power
 from .. import hardware as hw
 from ..backends.base import KeyboardState, Unsupported
 from ..i18n import LANG, strings
@@ -108,7 +108,8 @@ class Worker(QObject):
             "disk": s.disk_used, "diskTotal": s.disk_total_gb,
             "onBattery": s.on_battery, "battery": s.battery, "batteryPower": s.battery_power,
             "fans": b.fan_speeds(),
-            "batteryHours": hw.battery_hours(s.battery_power) if s.on_battery else None,
+            "batteryHours": battery.hours(s.battery_power),
+            "batteryModes": (battery.estimate() or {}).get("modes"),
             "mode": mode, "fan": fan,
             "time": time.time(),
         }

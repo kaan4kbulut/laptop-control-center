@@ -429,7 +429,7 @@ Panel {
                 model: powerRow.items
                 PillButton {
                   required property string modelData
-                  width: (powerRow.width - powerRow.spacing * 2) / 3
+                  width: (powerRow.width - powerRow.spacing * (powerRow.items.length - 1)) / powerRow.items.length
                   label: root.lbl("power." + modelData)
                   checked: root.info && root.info.power === modelData
                   accent: root.purple

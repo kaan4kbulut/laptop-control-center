@@ -12,7 +12,7 @@ import subprocess
 
 log = logging.getLogger("lcc.helper")
 PATH = "/usr/local/libexec/lcc-helper"
-MIN_VERSION = 2
+MIN_VERSION = 3
 
 
 def installed() -> bool:
