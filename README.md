@@ -19,7 +19,7 @@ Control Center'dan esinlenmiştir; onlarla bir bağı yoktur.
 - **Canlı izleme:** işlemci frekansı, sıcaklığı ve kullanımı; ekran kartı kullanımı, sıcaklığı,
   gücü; fan hızları; bellek, disk, pil tüketimi ve kalan süre.
 - **LED klavye:** renk paleti, özel renk, 5 kademeli parlaklık.
-- **Pil tasarrufu:** pilde kendiliğinden açılan "Tasarruf" ve elle seçilen "Ultra" kademesi.
+- **Pil tasarrufu:** Pil Tasarrufu modunda kendiliğinden açılan "Tasarruf" ve elle seçilen "Ultra" kademesi.
   Her kademenin neyi açacağını sen seçersin: ekran 60 Hz, parlaklık sınırı, Wi-Fi güç
   tasarrufu, PCIe ASPM, arka plan servislerini durdurma, Bluetooth, klavye ışığı, yalnızca
   verimli (E) çekirdekler. Fiş takılınca her şey açılmadan önceki haline döner.
@@ -138,7 +138,7 @@ Monster / Clevo Control Center; the project is not affiliated with either.
   dragging points.
 - **Live monitoring** of CPU, GPU, fans, memory, disk and battery.
 - **RGB keyboard:** palette, custom color, 5 brightness levels.
-- **Power saving:** "Saver" turns on automatically on battery, "Ultra" can be chosen by
+- **Power saving:** "Saver" turns on automatically in Power Saving mode, "Ultra" can be chosen by
   hand. You choose what each level does: 60 Hz display, brightness cap, Wi-Fi power save,
   PCIe ASPM, stopping background services, Bluetooth, keyboard light, efficiency cores only.
   Everything is restored when plugged in.

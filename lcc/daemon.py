@@ -29,7 +29,7 @@ class Daemon:
         self.ctl = Controller()
         self.loop = GLib.MainLoop()
         self._gen = 0
-        self.power = power.PowerManager(self.ctl.backend)
+        self.power = power.PowerManager(self.ctl.backend, lambda: self.ctl.desired()[0])
         self.battery = battery.Estimator(self.ctl.backend, lambda: self.power.level)
         self._eval_pending = 0
         self._monitors = []

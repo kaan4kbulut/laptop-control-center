@@ -1,4 +1,5 @@
-"""Pil tasarrufu: pilde kendiliğinden "Tasarruf", istenirse "Ultra"; prize takılınca geri alınır.
+"""Pil tasarrufu: Pil Tasarrufu modunda kendiliğinden "Tasarruf", istenirse "Ultra"; öbür
+modlara geçince ya da prize takılınca geri alınır.
 
 Kademe (level): off | saver | ultra | headless. Her kademenin açacağı özellikler config.json'daki
 `power_saving` bölümünde, kullanıcı arayüzden değiştirebilir. Uygulayan tek yer
@@ -261,8 +262,9 @@ def set_refresh(low: bool) -> None:
 
 # --- yönetici -------------------------------------------------------------------
 class PowerManager:
-    def __init__(self, backend=None):
+    def __init__(self, backend=None, mode=None):
         self.backend = backend
+        self.mode = mode            # seçili performans modunu veren işlev
         self.saved: dict = {}       # özellik -> açılmadan önceki durum
         self.level = "off"
         self.cap: int | None = None
@@ -295,7 +297,9 @@ class PowerManager:
         req = requested()
         if req in LEVELS:
             return req
-        return "saver" if on_battery and settings().get("auto", True) else "off"
+        # Kendiliğinden yalnızca Pil Tasarrufu modunda; Performans/Eğlence/Sessiz'de kapalı.
+        powersave = self.mode() == "powersave" if self.mode else on_battery
+        return "saver" if powersave and settings().get("auto", True) else "off"
 
     def on_power_source_changed(self, on_battery: bool) -> None:
         """Fiş takılınca/çekilince elle seçim unutulur, otomatik kurala dönülür."""

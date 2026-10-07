@@ -18,7 +18,7 @@ DEFAULTS: dict = {
     "camera": True,              # False: açılışta da kapalı tutulur
     # Pil tasarrufu kademeleri: her biri açacağı özelliklerin listesi (lcc/power.py).
     "power_saving": {
-        "auto": True,            # pilde kendiliğinden "saver"
+        "auto": True,            # Pil Tasarrufu modunda kendiliğinden "saver"
         "saver": ["refresh", "brightness", "wifi", "aspm", "services"],
         "ultra": ["refresh", "brightness", "wifi", "aspm", "services", "bluetooth", "kbd", "ecores"],
         # Pilde kapak kapanınca (harici ekran yoksa) kendiliğinden "headless".
