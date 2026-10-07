@@ -3,3 +3,26 @@ __pycache__/
 /build/
 /dist/
 *.egg-info/
+
+# Publication privacy: runtime data and credentials stay local
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.log
+*.jsonl
+*.pem
+*.p12
+*.pfx
+host.token
+credentials.json
+.aws/
+.ssh/
+.privacy-tools/
+__pycache__/
