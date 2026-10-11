@@ -15,6 +15,10 @@ DEFAULTS: dict = {
     "boot_mode": {"ac": "balanced", "battery": "quiet"},
     # Turbo açık modlarda en yüksek işlemci frekansının yüzdesi (Sessiz'de turbo kapalı).
     "cpu_limit": {"balanced": 85},
+    # Ekran kartı: [saat tavanı (en yüksek saatin %'si), güç sınırı (varsayılanın %'si | "max")].
+    # Alt sınır en düşükte kalır; boşta düşük, yükte tavana kadar.
+    "gpu_limit": {"performance": [100, "max"], "balanced": [70, 100],
+                  "quiet": [45, 60], "powersave": [35, 40]},
     # Özel fan eğrisi: (sıcaklık °C, hız %) noktaları
     "custom_fan_curve": [[20, 0], [40, 15], [50, 25], [60, 35], [70, 50],
                          [80, 70], [90, 90], [100, 100]],

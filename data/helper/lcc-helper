@@ -16,11 +16,12 @@
 #   trim <on|off>                    (haftalık SSD TRIM zamanlayıcısı)
 #   sleep <on|off>                   (off: kapak ve uyku tuşu sistemi uyutmaz; ekran kapanır,
 #                                     işlemler sürer)
+#   gpu <saat MHz|reset> <güç W>      (NVIDIA saat tavanı ve güç sınırı; alt saat en düşükte)
 #   version
 set -euo pipefail
 export PATH=/usr/sbin:/usr/bin
 
-VERSION=5
+VERSION=6
 TCCD=/opt/tuxedo-control-center/resources/dist/tuxedo-control-center/data/service/tccd
 ALLOWED=(nvidia-powerd avahi-daemon cups ollama)
 
@@ -189,6 +190,16 @@ EOF
     fi
     # logind yeniden başlatılırsa oturum kapanır; yalnızca ayarları yeniden okut.
     systemctl reload systemd-logind ;;
+  gpu)
+    [[ ${2:-} =~ ^([0-9]{3,4}|reset)$ && ${3:-} =~ ^[0-9]{1,3}$ ]] || die "gpu <MHz|reset> <W> bekleniyor"
+    command -v nvidia-smi >/dev/null || die "nvidia-smi yok"
+    if [[ $2 == reset ]]; then
+      nvidia-smi -rgc >/dev/null
+    else
+      min=$(nvidia-smi --query-supported-clocks=gr --format=csv,noheader,nounits | sort -n | head -1)
+      nvidia-smi -lgc "${min:-0},$2" >/dev/null
+    fi
+    nvidia-smi -pl "$3" >/dev/null ;;
   *)
     die "bilinmeyen komut: ${1:-}" ;;
 esac

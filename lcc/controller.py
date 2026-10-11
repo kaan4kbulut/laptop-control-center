@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from . import config, profiles
+from . import config, gpu, profiles
 from . import hardware as hw
 from .backends import detect
 from .backends.base import FAN_MODES, Backend, Unsupported
@@ -42,6 +42,7 @@ class Controller:
         self.backend.apply(mode, fan)
         config.update(**{src: {"mode": mode, "fan": fan}})
         profiles.sync(src, mode)
+        gpu.apply(mode)
         return mode, fan
 
     def next_mode(self) -> tuple[str, str]:
@@ -70,6 +71,7 @@ class Controller:
         mode, fan = self.desired()
         if mode is None:
             return False
+        gpu.apply(mode)
         cur = self.backend.current()
         if cur == (mode, fan) or (not self.caps.fan_modes and cur[0] == mode):
             return False
