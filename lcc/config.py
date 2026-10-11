@@ -9,8 +9,8 @@ from pathlib import Path
 DEFAULTS: dict = {
     "language": "auto",          # auto | tr | en
     # Güç kaynağına göre hatırlanan seçim; fiş takılıp çekilince yeniden uygulanır.
-    "ac": {"mode": "performance", "fan": "auto"},
-    "battery": {"mode": "powersave", "fan": "silent"},
+    "ac": {"mode": "balanced", "fan": "auto"},
+    "battery": {"mode": "quiet", "fan": "silent"},
     # Özel fan eğrisi: (sıcaklık °C, hız %) noktaları
     "custom_fan_curve": [[20, 0], [40, 15], [50, 25], [60, 35], [70, 50],
                          [80, 70], [90, 90], [100, 100]],

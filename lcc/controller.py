@@ -32,8 +32,15 @@ class Controller:
             raise Unsupported(mode)
         src = self.source()
         _, fan = self.desired(src)
+        # Sessiz modda fan da Sessiz; Sessiz moddan çıkınca Sessiz fan Otomatik'e döner.
+        if "silent" in self.caps.fan_modes:
+            if mode == "quiet":
+                fan = "silent"
+            # Önceki mod tccd'den okunur: kapak betiği config'teki modu önceden değiştirir.
+            elif fan == "silent" and (self.backend.current()[0] or self.desired(src)[0]) == "quiet":
+                fan = "auto"
         self.backend.apply(mode, fan)
-        config.update(**{src: {"mode": mode}})
+        config.update(**{src: {"mode": mode, "fan": fan}})
         profiles.sync(src, mode)
         return mode, fan
 
