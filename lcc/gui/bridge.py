@@ -14,7 +14,7 @@ import traceback
 
 from PySide6.QtCore import Property, QObject, QThread, QTimer, Signal, Slot
 
-from .. import battery, camera, config, desktop, notify, power
+from .. import battery, camera, config, desktop, notify, power, tune
 from .. import hardware as hw
 from ..backends.base import KeyboardState, Unsupported
 from ..i18n import LANG, strings
@@ -37,6 +37,9 @@ class Worker(QObject):
         self.sensors = None
         self._tick = 0
         self.timer = None
+        # Optimizasyon sayfası: son analiz, DNS testi, hız testi ve süren iş.
+        self.tune = {"checks": [], "dns": None, "speed": None, "busy": "", "time": 0,
+                     "dnsCurrent": tune.dns_current()}
 
     @Slot()
     def start(self):
@@ -81,6 +84,7 @@ class Worker(QObject):
             "fanCurves": dict(b.auto_curves(), custom=config.load()["custom_fan_curve"])
                          if hasattr(b, "auto_curves") and "custom" in caps.fan_modes else None,
             "lang": LANG,
+            "dnsProviders": [[k, v[0]] for k, v in tune.DNS_PROVIDERS.items()],
         }
 
     def _poll(self, force_desk: bool = False):
@@ -138,6 +142,7 @@ class Worker(QObject):
             out["kbdBrightness"], out["kbdColorValue"] = k.brightness, k.color
         except Exception:
             pass
+        out["tune"] = dict(self.tune)
         return out
 
     # --- komutlar (QML'den kuyrukla gelir) --------------------------------------
@@ -225,6 +230,76 @@ class Worker(QObject):
 
     def do_airplane(self, on):
         desktop.set_airplane(bool(on))
+
+    # --- optimizasyon -----------------------------------------------------------------
+    def _busy(self, what: str):
+        """Uzun işten önce arayüze 'çalışıyor' durumunu gönderir."""
+        self.tune["busy"] = what
+        self.deskReady.emit(self._desk())
+
+    def _analyze(self):
+        self.tune["checks"] = tune.analyze(self.ctl.backend, hw.on_battery(), self.tune["dns"])
+        self.tune["dnsCurrent"] = tune.dns_current()
+        self.tune["time"] = time.time()
+
+    def do_tuneAnalyze(self):
+        self._busy("analyze")
+        try:
+            if self.tune["dns"] is None:
+                self.tune["dns"] = tune.dns_benchmark()
+            self._analyze()
+        finally:
+            self.tune["busy"] = ""
+
+    def do_tuneFix(self, item):
+        self._busy("fix:" + item)
+        try:
+            tune.fix(item, self.ctl, self.tune["dns"])
+        finally:
+            self._analyze()
+            self.tune["busy"] = ""
+
+    def do_tuneFixAll(self):
+        self._busy("fixall")
+        errors = []
+        try:
+            if self.tune["dns"] is None:
+                self.tune["dns"] = tune.dns_benchmark()
+            self._analyze()
+            for c in self.tune["checks"]:
+                if c["fix"]:
+                    try:
+                        tune.fix(c["id"], self.ctl, self.tune["dns"])
+                    except Exception as e:
+                        errors.append(str(e))
+        finally:
+            self._analyze()
+            self.tune["busy"] = ""
+        if errors:
+            raise RuntimeError("; ".join(errors))
+
+    def do_dnsTest(self):
+        self._busy("dns")
+        try:
+            self.tune["dns"] = tune.dns_benchmark()
+            self._analyze()
+        finally:
+            self.tune["busy"] = ""
+
+    def do_dnsSet(self, provider):
+        self._busy("dns")
+        try:
+            tune.set_dns(provider)
+        finally:
+            self._analyze()
+            self.tune["busy"] = ""
+
+    def do_speedTest(self):
+        self._busy("speed")
+        try:
+            self.tune["speed"] = tune.speed_test()
+        finally:
+            self.tune["busy"] = ""
 
 
 class Bridge(QObject):

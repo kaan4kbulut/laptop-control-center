@@ -23,6 +23,11 @@ Control Center'dan esinlenmiştir; onlarla bir bağı yoktur.
   Her kademenin neyi açacağını sen seçersin: ekran 60 Hz, parlaklık sınırı, Wi-Fi güç
   tasarrufu, PCIe ASPM, arka plan servislerini durdurma, Bluetooth, klavye ışığı, yalnızca
   verimli (E) çekirdekler. Fiş takılınca her şey açılmadan önceki haline döner.
+- **Optimizasyon:** bilgisayarı analiz eder ve tek tıkla düzeltir: işlemci turbo (açılışta
+  kapatan BIOS'lar için kalıcı), prizde performans modu, fan sürücüsü, SSD TRIM, TCP BBR ile
+  internet ayarları, DNS sağlayıcılarını test edip en hızlısını seçme, Wi-Fi, bellek, disk ve
+  servis durumu; internet hız testi. Komut satırı: `lcc tune`, `lcc tune fix`, `lcc tune dns`,
+  `lcc tune speed`.
 - **Diğer:** şarj sınırı, Fn kilidi, kamera, touchpad, mikrofon, uçak modu, ses, ekran
   parlaklığı, gece ışığı.
 - **Omarchy entegrasyonu:** bar'da mod simgesi ve canlı izleme paneli, Super+F5 ile mod

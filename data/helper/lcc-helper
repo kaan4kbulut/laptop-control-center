@@ -9,11 +9,16 @@
 #   rfkill bluetooth <block|unblock>
 #   camera <on|off>                  (USB görüntü sınıfı arayüzleri uvcvideo'ya bağlanır/ayrılır)
 #   tcc-profiles <profiles.json> <settings.json>   (tccd profillerini yeniden yazar)
+#   turbo <on|off>                   (işlemci turbo; açıkken her açılışta da açılır)
+#   net-tune <on|off>                (TCP BBR + fq, büyük arabellekler, MTU yoklaması)
+#   dns <auto|google|cloudflare|quad9|adguard|opendns|controld>
+#                                    (sistem DNS'i; auto = ağın/modemin DNS'i)
+#   trim <on|off>                    (haftalık SSD TRIM zamanlayıcısı)
 #   version
 set -euo pipefail
 export PATH=/usr/sbin:/usr/bin
 
-VERSION=3
+VERSION=4
 TCCD=/opt/tuxedo-control-center/resources/dist/tuxedo-control-center/data/service/tccd
 ALLOWED=(nvidia-powerd avahi-daemon cups ollama)
 
@@ -100,6 +105,74 @@ case "${1:-}" in
     python3 -c 'import json,sys; [json.load(open(f)) for f in sys.argv[1:]]' "$tmp/profiles.json" "$tmp/settings.json" \
       || die "geçersiz JSON"
     "$TCCD" --new_profiles "$tmp/profiles.json" --new_settings "$tmp/settings.json" ;;
+  turbo)
+    [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
+    # Bazı Clevo/Monster BIOS'ları açılışta turbo'yu kapatıyor; tmpfiles her açılışta düzeltir.
+    rm -f /etc/tmpfiles.d/cpu-turbo.conf
+    if [[ -e /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
+      file=/sys/devices/system/cpu/intel_pstate/no_turbo on=0 off=1
+    elif [[ -e /sys/devices/system/cpu/cpufreq/boost ]]; then
+      file=/sys/devices/system/cpu/cpufreq/boost on=1 off=0
+    else
+      die "turbo denetimi yok"
+    fi
+    if [[ $2 == on ]]; then
+      echo "$on" > "$file"
+      echo "w $file - - - - $on" > /etc/tmpfiles.d/lcc-turbo.conf
+    else
+      echo "$off" > "$file"
+      rm -f /etc/tmpfiles.d/lcc-turbo.conf
+    fi ;;
+  net-tune)
+    [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
+    rm -f /etc/sysctl.d/99-ag-performans.conf /etc/modules-load.d/bbr.conf
+    if [[ $2 == on ]]; then
+      cat > /etc/sysctl.d/90-lcc-net.conf <<'EOF'
+# laptop-control-center: internet hızı ayarları. Kapatmak için Kontrol Merkezi > Optimizasyon.
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 131072 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_slow_start_after_idle = 0
+net.ipv4.tcp_fastopen = 3
+EOF
+      echo tcp_bbr > /etc/modules-load.d/lcc-bbr.conf
+      modprobe tcp_bbr
+      sysctl -q -p /etc/sysctl.d/90-lcc-net.conf
+    else
+      rm -f /etc/sysctl.d/90-lcc-net.conf /etc/modules-load.d/lcc-bbr.conf
+      sysctl -q -w net.core.default_qdisc=fq_codel net.ipv4.tcp_congestion_control=cubic \
+        net.core.rmem_max=212992 net.core.wmem_max=212992 \
+        "net.ipv4.tcp_rmem=4096 131072 6291456" "net.ipv4.tcp_wmem=4096 16384 4194304" \
+        net.ipv4.tcp_mtu_probing=0 net.ipv4.tcp_slow_start_after_idle=1 net.ipv4.tcp_fastopen=1
+      sysctl -q --system || true
+    fi ;;
+  dns)
+    case ${2:-} in
+      google)     servers="8.8.8.8#dns.google 8.8.4.4#dns.google" ;;
+      cloudflare) servers="1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com" ;;
+      quad9)      servers="9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net" ;;
+      adguard)    servers="94.140.14.140#unfiltered.adguard-dns.com 94.140.14.141#unfiltered.adguard-dns.com" ;;
+      opendns)    servers="208.67.222.222 208.67.220.220" ;;
+      controld)   servers="76.76.2.0#p0.freedns.controld.com 76.76.10.0#p0.freedns.controld.com" ;;
+      auto)       servers="" ;;
+      *) die "bilinmeyen DNS sağlayıcısı" ;;
+    esac
+    rm -f /etc/systemd/resolved.conf.d/30-dns.conf /etc/NetworkManager/conf.d/50-dns.conf
+    if [[ -n $servers ]]; then
+      mkdir -p /etc/systemd/resolved.conf.d
+      printf '%s\n' "# laptop-control-center: sistem DNS'i ($2). Kontrol Merkezi > Optimizasyon'dan değiştirilir." \
+        "[Resolve]" "DNS=$servers" "Domains=~." > /etc/systemd/resolved.conf.d/30-lcc-dns.conf
+    else
+      rm -f /etc/systemd/resolved.conf.d/30-lcc-dns.conf
+    fi
+    systemctl restart systemd-resolved ;;
+  trim)
+    [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
+    if [[ $2 == on ]]; then systemctl enable --now fstrim.timer; else systemctl disable --now fstrim.timer; fi ;;
   *)
     die "bilinmeyen komut: ${1:-}" ;;
 esac

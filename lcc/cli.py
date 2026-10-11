@@ -313,6 +313,39 @@ def cmd_power(args) -> int:
     return 0
 
 
+def cmd_tune(args) -> int:
+    from . import tune
+    from .controller import Controller
+    from .hardware import on_battery
+    ctl = Controller()
+    marks = {"ok": "✓", "warn": "!", "bad": "✗", "info": "·"}
+    if args.action == "dns":
+        if args.target:
+            tune.set_dns(args.target)
+        res = tune.dns_benchmark()
+        cur = tune.dns_current()
+        for k, v in sorted(res.items(), key=lambda kv: kv[1]["score"]):
+            print(f"{'●' if k == cur else ' '} {v['name']:12} {v['uncached']:6.0f} ms  ({v['cached']:.0f} ms)")
+        return 0
+    if args.action == "speed":
+        r = tune.speed_test()
+        fmt = lambda v, u: f"{v:.0f} {u}" if v is not None else "–"  # noqa: E731
+        print(f"{t('tune.down')}: {fmt(r['down'], 'Mbit/s')}  {t('tune.up')}: {fmt(r['up'], 'Mbit/s')}  "
+              f"{t('tune.ping')}: {fmt(r['ping'], 'ms')}")
+        return 0
+    dns = tune.dns_benchmark()
+    checks = tune.analyze(ctl.backend, on_battery(), dns)
+    if args.action == "fix":
+        targets = [args.target] if args.target else [c["id"] for c in checks if c["fix"]]
+        for item in targets:
+            tune.fix(item, ctl, dns)
+            print(f"✓ {t('tune.' + item)}")
+        checks = tune.analyze(ctl.backend, on_battery(), dns)
+    for c in checks:
+        print(f"{marks[c['state']]} {t('tune.' + c['id']):28} {c['value']:30} {c['detail']}")
+    return 0
+
+
 def cmd_daemon(args) -> int:
     from .daemon import main
     main()
@@ -359,7 +392,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_monitor)
 
     s = sub.add_parser("gui", help="ana pencere / main window")
-    s.add_argument("page", nargs="?", default="monitor", choices=["monitor", "led", "settings", "power", "fancurve"])
+    s.add_argument("page", nargs="?", default="monitor", choices=["monitor", "led", "settings", "power", "fancurve", "tune"])
     s.set_defaults(func=cmd_gui)
 
     s = sub.add_parser("bar", help="bar eklentisi için JSON / JSON for the bar plugin")
@@ -371,6 +404,11 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("power", help="pil tasarrufu / power saving")
     s.add_argument("level", nargs="?", choices=["auto", "off", "saver", "ultra"])
     s.set_defaults(func=cmd_power)
+
+    s = sub.add_parser("tune", help="sistem analizi ve optimizasyon / system analysis and tuning")
+    s.add_argument("action", nargs="?", default="analyze", choices=["analyze", "fix", "dns", "speed"])
+    s.add_argument("target", nargs="?", help="fix: turbo|mode|trim|tcp|dns|wifi · dns: sağlayıcı / provider")
+    s.set_defaults(func=cmd_tune)
 
     s = sub.add_parser("daemon", help="arka plan servisi / background service")
     s.set_defaults(func=cmd_daemon)

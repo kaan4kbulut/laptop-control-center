@@ -71,7 +71,7 @@ Window {
             x: 0; y: 100; width: 180; spacing: 6
             z: 2
             Repeater {
-                model: [["monitor", "nav.monitor"], ["led", "nav.led"], ["settings", "nav.settings"], ["power", "nav.power"]]
+                model: [["monitor", "nav.monitor"], ["led", "nav.led"], ["settings", "nav.settings"], ["power", "nav.power"], ["tune", "nav.tune"]]
                 delegate: Item {
                     required property var modelData
                     readonly property bool current: win.page === modelData[0]
@@ -101,6 +101,7 @@ Window {
             source: win.page === "led" ? "LedPage.qml"
                   : win.page === "settings" ? "SettingsPage.qml"
                   : win.page === "power" ? "PowerPage.qml"
+                  : win.page === "tune" ? "TunePage.qml"
                   : win.page === "fancurve" ? "FanCurvePage.qml" : "MonitorPage.qml"
         }
 
@@ -137,4 +138,5 @@ Window {
     Shortcut { sequence: "Ctrl+2"; onActivated: win.page = "led" }
     Shortcut { sequence: "Ctrl+3"; onActivated: win.page = "settings" }
     Shortcut { sequence: "Ctrl+4"; onActivated: win.page = "power" }
+    Shortcut { sequence: "Ctrl+5"; onActivated: win.page = "tune" }
 }
