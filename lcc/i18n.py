@@ -204,6 +204,8 @@ _STRINGS: dict[str, tuple[str, str]] = {
                        "Turbo is off: CPU is capped at {ghz}. Enabling it unlocks full speed."),
     "tune.turbo.boot": ("Açık ama BIOS açılışta kapatıyor; her açılışta açılması sağlanmalı.",
                         "On, but the BIOS turns it off at boot; it should be re-enabled on every boot."),
+    "tune.turbo.mode": ("Sessiz modda kapalı; Eğlence ve Performans'ta açılır",
+                        "Off in Quiet mode; turns on in Entertainment and Performance"),
     "tune.turbo.ok": ("Açık, her açılışta da açılıyor (en yüksek {ghz})", "On and enabled at every boot (max {ghz})"),
     "tune.mode": ("Prizdeki mod", "Mode on AC"),
     "tune.mode.ok": ("Prize takılıyken işlemci ve ekran kartı tam güçte", "CPU and GPU run at full power on AC"),

@@ -36,7 +36,7 @@ ODM = {"performance": "performance", "balanced": "entertainment",
 CPU = {
     "performance": {"energyPerformancePreference": "performance", "noTurbo": False},
     "balanced": {"energyPerformancePreference": "balance_performance", "noTurbo": False},
-    "quiet": {"energyPerformancePreference": "balance_power", "noTurbo": False},
+    "quiet": {"energyPerformancePreference": "balance_power", "noTurbo": True},
     "powersave": {"energyPerformancePreference": "power", "noTurbo": True},
 }
 
@@ -60,6 +60,25 @@ def _call(method, sig=None, *args):
 
 def _json(method):
     return json.loads(_call(method))
+
+
+def _max_freq() -> int | None:
+    """Çekirdeklerin en yüksek frekansı (kHz). Turbo kapalıyken taban frekans okunur;
+    o zaman sınır konmaz (aksi halde turbo açılınca da düşük kalırdı)."""
+    try:
+        with open("/sys/devices/system/cpu/intel_pstate/no_turbo") as f:
+            if f.read().strip() == "1":
+                return None
+    except OSError:
+        pass
+    vals = []
+    for path in glob.glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq/cpuinfo_max_freq"):
+        try:
+            with open(path) as f:
+                vals.append(int(f.read()))
+        except (OSError, ValueError):
+            pass
+    return max(vals) if vals else None
 
 
 def profile_id(mode: str, fan: str) -> str:
@@ -171,6 +190,9 @@ class TccdBackend(Backend):
             "max": expand_curve([[0, 100], [100, 100]]),
             "custom": expand_curve(custom_curve),
         }
+        from .. import config
+        limits = config.load().get("cpu_limit", {})
+        top = _max_freq()
         out = []
         for mode in self.capabilities().modes:
             for fan in FAN_MODES:
@@ -179,6 +201,10 @@ class TccdBackend(Backend):
                 p["name"] = f"LCC {t('mode.' + mode)} · {t('fan.' + fan)}"
                 p["description"] = "laptop-control-center"
                 p["cpu"].update(CPU[mode])
+                # Turbo açıkken bile tam hıza çıkmasın: en yüksek frekansın yüzdesi.
+                pct = limits.get(mode)
+                if top and pct and not p["cpu"]["noTurbo"]:
+                    p["cpu"]["scalingMaxFrequency"] = top * min(int(pct), 100) // 100 // 100000 * 100000
                 if ODM[mode] in self._odm:
                     p["odmProfile"] = {"name": ODM[mode]}
                 f = p["fan"]

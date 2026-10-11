@@ -68,6 +68,11 @@ def _result(id_, state, value, detail, fix=False) -> dict:
 
 # --- kontroller ---------------------------------------------------------------------
 
+def _on_battery() -> bool:
+    from .hardware import on_battery
+    return on_battery()
+
+
 def check_turbo() -> dict:
     no_turbo = _read("/sys/devices/system/cpu/intel_pstate/no_turbo")
     boost = _read("/sys/devices/system/cpu/cpufreq/boost")
@@ -77,6 +82,8 @@ def check_turbo() -> dict:
     persistent = os.path.exists("/etc/tmpfiles.d/lcc-turbo.conf")
     mhz = _read("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
     ghz = f"{int(mhz) / 1e6:.1f} GHz" if mhz and mhz.isdigit() else ""
+    if not on and config.load()["ac" if not _on_battery() else "battery"]["mode"] in ("quiet", "powersave"):
+        return _result("turbo", "ok", t("tune.off"), t("tune.turbo.mode"))
     if not on:
         return _result("turbo", "bad", t("tune.off"), t("tune.turbo.off", ghz=ghz), fix=True)
     if not persistent:
