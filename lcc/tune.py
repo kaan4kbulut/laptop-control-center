@@ -87,6 +87,8 @@ def check_turbo() -> dict:
 def check_mode() -> dict:
     conf = config.load()
     mode, boot = conf["ac"]["mode"], conf.get("boot_mode")
+    if isinstance(boot, dict):
+        boot = boot.get("ac")
     if mode == "performance":
         return _result("mode", "ok", t("mode.performance"), t("tune.mode.ok"))
     if mode == "balanced":
@@ -343,7 +345,8 @@ def fix(item: str, ctl=None, dns_results: dict | None = None) -> None:
         _need_helper()
         helper.run("turbo", "on") or _fail(item)
     elif item == "mode":
-        mode = config.load().get("boot_mode") or "performance"
+        boot = config.load().get("boot_mode")
+        mode = (boot.get("ac") if isinstance(boot, dict) else boot) or "performance"
         config.update(ac={"mode": mode})
         if ctl is not None:
             from .hardware import on_battery

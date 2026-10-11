@@ -207,7 +207,7 @@ _STRINGS: dict[str, tuple[str, str]] = {
     "tune.turbo.ok": ("Açık, her açılışta da açılıyor (en yüksek {ghz})", "On and enabled at every boot (max {ghz})"),
     "tune.mode": ("Prizdeki mod", "Mode on AC"),
     "tune.mode.ok": ("Prize takılıyken işlemci ve ekran kartı tam güçte", "CPU and GPU run at full power on AC"),
-    "tune.mode.boot": ("Her açılışta Eğlence; kapak kapanınca Sessiz", "Entertainment at every boot; Quiet when the lid closes"),
+    "tune.mode.boot": ("Açılışta prizde Eğlence, pilde Sessiz; kapak kapanınca Sessiz", "At boot Entertainment on AC, Quiet on battery; Quiet when the lid closes"),
     "tune.mode.balanced": ("Dengeli güç; Performans en hızlısıdır (fanlar daha sesli)",
                            "Balanced power; Performance is fastest (louder fans)"),
     "tune.sleep": ("Uyku", "Sleep"),

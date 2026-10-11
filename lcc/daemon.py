@@ -184,7 +184,7 @@ class Daemon:
     def _apply_boot_mode(self) -> None:
         """Yeniden başlatmadan sonra ilk çalışmada seçimi açılış moduna döndür (oturum
         açıp kapatmak ya da servisi yeniden başlatmak seçimi değiştirmez)."""
-        mode = config.load().get("boot_mode")
+        boot_mode = config.load().get("boot_mode")
         stamp = config.state_dir() / "boot-id"
         boot = power._boot_id()
         try:
@@ -194,11 +194,16 @@ class Daemon:
             pass
         stamp.parent.mkdir(parents=True, exist_ok=True)
         stamp.write_text(boot + "\n")
-        if mode not in self.ctl.caps.modes:
-            return
-        fan = "silent" if mode == "quiet" and "silent" in self.ctl.caps.fan_modes else "auto"
-        log.info("boot: mode %s", mode)
-        config.update(ac={"mode": mode, "fan": fan}, battery={"mode": mode, "fan": fan})
+        if not isinstance(boot_mode, dict):   # eski biçim: tek mod iki kaynak için
+            boot_mode = {"ac": boot_mode, "battery": boot_mode}
+        changes = {}
+        for src, mode in boot_mode.items():
+            if src in ("ac", "battery") and mode in self.ctl.caps.modes:
+                quiet = mode == "quiet" and "silent" in self.ctl.caps.fan_modes
+                changes[src] = {"mode": mode, "fan": "silent" if quiet else "auto"}
+        if changes:
+            log.info("boot: %s", {k: v["mode"] for k, v in changes.items()})
+            config.update(**changes)
 
     def _apply_camera(self) -> None:
         """Kullanıcı kamerayı kapattıysa yeniden başlatmadan sonra da kapalı kalsın."""
