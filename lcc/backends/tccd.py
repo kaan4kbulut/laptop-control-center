@@ -35,6 +35,8 @@ ODM = {"performance": "performance", "balanced": "entertainment",
 
 CPU = {
     "performance": {"energyPerformancePreference": "performance", "noTurbo": False},
+    # Boşta düşük frekansta kalır, yük gelince yükselir (turbo açık, üstü cpu_limit ile sınırlı).
+    # balance_power yükte de taban frekansta kalıyordu; orta kısım için balance_performance.
     "balanced": {"energyPerformancePreference": "balance_performance", "noTurbo": False},
     "quiet": {"energyPerformancePreference": "balance_power", "noTurbo": True},
     "powersave": {"energyPerformancePreference": "power", "noTurbo": True},

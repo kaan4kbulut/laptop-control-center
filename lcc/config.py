@@ -14,7 +14,7 @@ DEFAULTS: dict = {
     # Her açılışta güç kaynağına göre seçilen mod; None: son seçim korunur.
     "boot_mode": {"ac": "balanced", "battery": "quiet"},
     # Turbo açık modlarda en yüksek işlemci frekansının yüzdesi (Sessiz'de turbo kapalı).
-    "cpu_limit": {"balanced": 75},
+    "cpu_limit": {"balanced": 85},
     # Özel fan eğrisi: (sıcaklık °C, hız %) noktaları
     "custom_fan_curve": [[20, 0], [40, 15], [50, 25], [60, 35], [70, 50],
                          [80, 70], [90, 90], [100, 100]],
