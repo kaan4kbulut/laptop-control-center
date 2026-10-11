@@ -14,11 +14,13 @@
 #   dns <auto|google|cloudflare|quad9|adguard|opendns|controld>
 #                                    (sistem DNS'i; auto = ağın/modemin DNS'i)
 #   trim <on|off>                    (haftalık SSD TRIM zamanlayıcısı)
+#   sleep <on|off>                   (off: kapak ve uyku tuşu sistemi uyutmaz; ekran kapanır,
+#                                     işlemler sürer)
 #   version
 set -euo pipefail
 export PATH=/usr/sbin:/usr/bin
 
-VERSION=4
+VERSION=5
 TCCD=/opt/tuxedo-control-center/resources/dist/tuxedo-control-center/data/service/tccd
 ALLOWED=(nvidia-powerd avahi-daemon cups ollama)
 
@@ -173,6 +175,20 @@ EOF
   trim)
     [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
     if [[ $2 == on ]]; then systemctl enable --now fstrim.timer; else systemctl disable --now fstrim.timer; fi ;;
+  sleep)
+    [[ ${2:-} =~ ^(on|off)$ ]] || die "on|off bekleniyor"
+    conf=/etc/systemd/logind.conf.d/30-lcc-no-sleep.conf
+    if [[ $2 == off ]]; then
+      mkdir -p /etc/systemd/logind.conf.d
+      printf '%s\n' "# laptop-control-center: sistem kendiliğinden uyumaz; kapak kapanınca yalnızca ekran kapanır." \
+        "# Geri almak için Kontrol Merkezi > Optimizasyon." "[Login]" \
+        "HandleLidSwitch=ignore" "HandleLidSwitchExternalPower=ignore" "HandleLidSwitchDocked=ignore" \
+        "HandleSuspendKey=ignore" "HandleHibernateKey=ignore" "IdleAction=ignore" > "$conf"
+    else
+      rm -f "$conf"
+    fi
+    # logind yeniden başlatılırsa oturum kapanır; yalnızca ayarları yeniden okut.
+    systemctl reload systemd-logind ;;
   *)
     die "bilinmeyen komut: ${1:-}" ;;
 esac

@@ -24,7 +24,7 @@ import urllib.request
 from . import config, helper
 from .i18n import t
 
-HELPER_MIN = 4
+HELPER_MIN = 5
 
 # id: (görünen ad, test edilen birincil adres)
 DNS_PROVIDERS: dict[str, tuple[str, str]] = {
@@ -85,10 +85,32 @@ def check_turbo() -> dict:
 
 
 def check_mode() -> dict:
-    mode = config.load()["ac"]["mode"]
+    conf = config.load()
+    mode, boot = conf["ac"]["mode"], conf.get("boot_mode")
     if mode == "performance":
         return _result("mode", "ok", t("mode.performance"), t("tune.mode.ok"))
+    if mode == "balanced":
+        return _result("mode", "ok", t("mode.balanced"),
+                       t("tune.mode.boot") if boot == "balanced" else t("tune.mode.balanced"))
     return _result("mode", "warn", t("mode." + mode), t("tune.mode.low"), fix=True)
+
+
+def _logind(prop: str) -> str:
+    out = _cmd("busctl", "get-property", "org.freedesktop.login1", "/org/freedesktop/login1",
+               "org.freedesktop.login1.Manager", prop)
+    return out.split(" ", 1)[1].strip('"') if " " in out else ""
+
+
+def check_sleep() -> dict:
+    """Kapak kapanınca (ya da uyku tuşuyla) sistem uyursa çalışan işler durur."""
+    lid = _logind("HandleLidSwitch")
+    ac = _logind("HandleLidSwitchExternalPower") or lid   # boş: pildeki ayarı izler
+    key = _logind("HandleSuspendKey")
+    if not lid:
+        return _result("sleep", "info", t("tune.na"), t("tune.sleep.na"))
+    if lid == "ignore" and ac == "ignore" and key == "ignore":
+        return _result("sleep", "ok", t("tune.sleep.never"), t("tune.sleep.ok"))
+    return _result("sleep", "bad", t("tune.sleep.lid"), t("tune.sleep.bad"), fix=True)
 
 
 def check_trim() -> dict:
@@ -224,7 +246,7 @@ def check_memory() -> dict:
 
 
 def analyze(backend, on_battery: bool, dns_results: dict | None = None) -> list[dict]:
-    return [check_turbo(), check_mode(), check_fan(backend), check_trim(), check_tcp(),
+    return [check_turbo(), check_mode(), check_sleep(), check_fan(backend), check_trim(), check_tcp(),
             check_dns(dns_results), check_wifi(on_battery), check_memory(), check_disk(),
             check_services()]
 
@@ -321,11 +343,15 @@ def fix(item: str, ctl=None, dns_results: dict | None = None) -> None:
         _need_helper()
         helper.run("turbo", "on") or _fail(item)
     elif item == "mode":
-        config.update(ac={"mode": "performance"})
+        mode = config.load().get("boot_mode") or "performance"
+        config.update(ac={"mode": mode})
         if ctl is not None:
             from .hardware import on_battery
             if not on_battery():
-                ctl.set_mode("performance")
+                ctl.set_mode(mode)
+    elif item == "sleep":
+        _need_helper()
+        helper.run("sleep", "off") or _fail(item)
     elif item == "trim":
         _need_helper()
         helper.run("trim", "on") or _fail(item)
