@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import glob
+import json
 import os
 import re
 import shutil
@@ -104,9 +105,38 @@ def _nvidia_marketing_name() -> str | None:
         return None
 
 
+def _name_cache_path() -> str:
+    base = os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
+    return os.path.join(base, "laptop-control-center", "gpus.json")
+
+
+def _load_names() -> dict[str, str]:
+    try:
+        with open(_name_cache_path()) as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_names(names: dict[str, str]) -> None:
+    path = _name_cache_path()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as f:
+            json.dump(names, f, ensure_ascii=False)
+    except OSError:
+        pass
+
+
 @lru_cache(maxsize=1)
 def gpus() -> list[GpuDevice]:
-    names = _lspci_names()
+    """Adlar önbellekten okunur: lspci PCI yapılandırma alanını okuyup uyuyan ekran
+    kartını uyandırır, bar her birkaç saniyede çağrıldığı için kart hiç uyuyamıyordu.
+    Önbellek anahtarı PCI adresi + aygıt kimliği; kart değişirse yeniden okunur."""
+    cache = _load_names()
+    names: dict[str, str] | None = None
+    changed = False
     result = []
     for dev in sorted(glob.glob("/sys/bus/pci/devices/*")):
         cls = read(dev + "/class", "")
@@ -122,10 +152,26 @@ def gpus() -> list[GpuDevice]:
             discrete = vram > 2 * 1024**3
         else:
             discrete = False
-        name = names.get(pci, f"{vendor.upper()} GPU")
-        if vendor == "nvidia" and read(dev + "/power/runtime_status") != "suspended":
-            name = _nvidia_marketing_name() or name
+        key = f"{pci}/{read(dev + '/device', '')}"
+        name = cache.get(key)
+        # NVIDIA'nın gerçek adı (nvidia-smi) yalnızca kart zaten uyanıkken alınabilir.
+        if name is None or (vendor == "nvidia" and cache.get(key + "#lspci")):
+            awake = read(dev + "/power/runtime_status") != "suspended"
+            better = _nvidia_marketing_name() if vendor == "nvidia" and awake else None
+            if better:
+                name = better
+                cache.pop(key + "#lspci", None)
+            elif name is None:
+                if names is None:
+                    names = _lspci_names()
+                name = names.get(pci, f"{vendor.upper()} GPU")
+                if vendor == "nvidia":
+                    cache[key + "#lspci"] = "1"
+            cache[key] = name
+            changed = True
         result.append(GpuDevice(pci, vendor, name, discrete, dev))
+    if changed:
+        _save_names(cache)
     return result
 
 

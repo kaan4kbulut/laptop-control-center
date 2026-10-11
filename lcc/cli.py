@@ -272,7 +272,7 @@ def cmd_bar(args) -> int:
         if not _gui_running():
             b.stop_monitoring()
         return 0
-    sensors = Sensors()
+    sensors = Sensors(query_gpu=args.watch)
     if not args.watch:
         print(json.dumps(_bar_payload(ctl, sensors), ensure_ascii=False))
         return 0

@@ -55,12 +55,14 @@ class Snapshot:
 
 
 class Sensors:
-    def __init__(self):
+    def __init__(self, query_gpu: bool = True):
+        """query_gpu=False: uyanık ekran kartı da nvidia-smi ile yoklanmaz (her yoklama
+        kartın uyku sayacını sıfırlar; panel kapalıyken kart böylece kapanabilir)."""
         self._prev_stat: tuple[int, int] | None = None
         self._cpu_temp_path = self._find_cpu_temp()
         self._rapl = self._find_rapl()
         self._dgpu = hw.discrete_gpu()
-        self._has_nvsmi = shutil.which("nvidia-smi") is not None
+        self._has_nvsmi = query_gpu and shutil.which("nvidia-smi") is not None
 
     # --- işlemci -----------------------------------------------------------
     @staticmethod
