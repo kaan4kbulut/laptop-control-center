@@ -170,6 +170,7 @@ class Daemon:
         self._watch(power.REQUEST_FILE)
         self._watch(config.path())
         self._watch_hyprland()
+        self._apply_boot_mode()
         self._power(lambda: self.power.evaluate(hw.on_battery()))
         self._apply_camera()
         self._check()
@@ -179,6 +180,25 @@ class Daemon:
         self._lid = power.lid_closed()
         GLib.timeout_add_seconds(2, self._lid_check)
         self.loop.run()
+
+    def _apply_boot_mode(self) -> None:
+        """Yeniden başlatmadan sonra ilk çalışmada seçimi açılış moduna döndür (oturum
+        açıp kapatmak ya da servisi yeniden başlatmak seçimi değiştirmez)."""
+        mode = config.load().get("boot_mode")
+        stamp = config.state_dir() / "boot-id"
+        boot = power._boot_id()
+        try:
+            if stamp.read_text().strip() == boot:
+                return
+        except OSError:
+            pass
+        stamp.parent.mkdir(parents=True, exist_ok=True)
+        stamp.write_text(boot + "\n")
+        if mode not in self.ctl.caps.modes:
+            return
+        fan = "silent" if mode == "quiet" and "silent" in self.ctl.caps.fan_modes else "auto"
+        log.info("boot: mode %s", mode)
+        config.update(ac={"mode": mode, "fan": fan}, battery={"mode": mode, "fan": fan})
 
     def _apply_camera(self) -> None:
         """Kullanıcı kamerayı kapattıysa yeniden başlatmadan sonra da kapalı kalsın."""

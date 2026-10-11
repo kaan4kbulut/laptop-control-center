@@ -11,6 +11,8 @@ DEFAULTS: dict = {
     # Güç kaynağına göre hatırlanan seçim; fiş takılıp çekilince yeniden uygulanır.
     "ac": {"mode": "balanced", "fan": "auto"},
     "battery": {"mode": "quiet", "fan": "silent"},
+    # Her açılışta iki güç kaynağı için de bu mod seçilir; None: son seçim korunur.
+    "boot_mode": "balanced",
     # Özel fan eğrisi: (sıcaklık °C, hız %) noktaları
     "custom_fan_curve": [[20, 0], [40, 15], [50, 25], [60, 35], [70, 50],
                          [80, 70], [90, 90], [100, 100]],
