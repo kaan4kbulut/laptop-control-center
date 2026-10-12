@@ -26,3 +26,7 @@ credentials.json
 .ssh/
 .privacy-tools/
 __pycache__/
+
+# Bu bilgisayara özgü belge (kişisel bilgi içerir; proje-sablonu guncelle ile gelir)
+.claude/docs/kaynaklar/SISTEM.md
+.claude/settings.local.json
